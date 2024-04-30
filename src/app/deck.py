@@ -1,0 +1,34 @@
+from models import Suit, CardValue
+from sprites import Card
+from space import CardSpace
+import random
+
+
+class Deck(CardSpace):
+    def __init__(self, name: str, x: int, y: int, width: int, height: int, id_: str):
+        super().__init__(name, x, y, width, height, id_)
+        self.cards = []
+        for suit in Suit:
+            for value in CardValue:
+                self.cards.append(
+                    Card(
+                        suit=suit, 
+                        value=value,
+                        space=self, 
+                        x=0,
+                        y=0,
+                        space_width=self.width,
+                        back_up=True
+                        )
+                    )
+                
+        self.shuffle()
+
+    def shuffle(self):
+        random.shuffle(self.cards)
+        self.update()
+        
+    def deal(self, num_cards: int, space: CardSpace):
+        for _ in range(num_cards):
+            if self.cards:
+                self.transfer(self.cards[0], space)

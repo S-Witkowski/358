@@ -1,5 +1,4 @@
 from enum import Enum
-import random
 
 class CardValue(Enum):
     Deuce = 2
@@ -29,22 +28,4 @@ class GameMode(Enum):
     Spades = 3
     NoTrump = 4
     NoTricks = 5
-
-# class Card:
-#     suit: Suit = None
-#     value: CardValue = None
-#     game_mode: GameMode = None
-#     def __init__(self, suit, value):
-#         self.suit = suit
-#         self.value = value
-
-#     def __repr__(self):
-#         return f"{self.value.name} of {self.suit.name}"
-    
-#     def __gt__(self, other):
-#         return self.value.value > other.value.value
-    
-#     def __lt__(self, other):
-#         return self.value.value < other.value.value
-    
 
