@@ -29,3 +29,7 @@ class GameMode(Enum):
     NoTrump = 4
     NoTricks = 5
 
+class PlayerPosition(Enum):
+    Three = 0
+    Five = 1
+    Eight = 2

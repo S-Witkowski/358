@@ -60,6 +60,6 @@ class GameModeSelectionBox(AbstractGUIElement):
     def check_mouse(self, pos, down):
         for icon in self.group:
             icon.check_mouse(pos, down)
-            if icon.clicked:
+            if not self.icon_selected and icon.clicked:
                 self.icon_selected = icon
 

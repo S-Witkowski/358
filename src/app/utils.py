@@ -1,7 +1,6 @@
 import os
 import pygame as pg
-from functools import wraps
-import asyncio
+from random import randint
 
 def load_image(*args):
     sourceFileDir = os.path.dirname(os.path.abspath(__file__))
@@ -18,17 +17,17 @@ def load_and_transform_image(*args, space_width, size_factor):
     image = load_image(*args)
     return transform_image_size(image, space_width, size_factor)
 
-
-import functools
-
-def only_once(func):
-    func._called = False
-
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        if func._called:
-            raise RuntimeError("This function can only be called once.")
-        func._called = True
-        return func(*args, **kwargs)
-
-    return wrapper
+def sort_cards(cards):
+    if len(cards) < 2:
+        return cards
+    low, same, high = [], [], []
+    pivot = cards[randint(0, len(cards) - 1)]
+    for card in cards:
+        if float(card) < float(pivot):
+            low.append(card)
+        elif float(card) == float(pivot):
+            same.append(card)
+        elif float(card) > float(pivot):
+            high.append(card)
+    return sort_cards(low) + same + sort_cards(high)
+        

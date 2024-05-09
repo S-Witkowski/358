@@ -22,11 +22,11 @@ class Deck(CardSpace):
                         )
                     )
                 
-        self.shuffle()
+        self._shuffle()
+        self.adjust_card_position_in_space()
 
-    def shuffle(self):
+    def _shuffle(self):
         random.shuffle(self.cards)
-        self.update()
         
     def deal(self, num_cards: int, space: CardSpace):
         for _ in range(num_cards):

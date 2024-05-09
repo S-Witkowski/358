@@ -74,6 +74,7 @@ class GamePrepare(State):
             self.prepare_spaces()
             self.get_game_mode_picking_player()
             self.deal_first_cards()
+            self.game_controller.space_interface.get_by_id("PlayerSpace1").sort_active_player_cards()
             self.game_mode_selection_box = self.game_controller.gui_interface.show_selection_box((WIDTH*0.5, HEIGHT*0.3), id_="GameModeSelectionBox")
             self.first_stage = True
             print(f"First stage ended")
@@ -120,6 +121,7 @@ class GamePrepare(State):
                 for card in pick_space.cards.copy():
                     pick_space.transfer(card, self.game_mode_picking_player)
                 pick_space.clean()
+                self.game_controller.space_interface.get_by_id("PlayerSpace1").sort_active_player_cards()
                 self.game_controller.space_interface.add(CardSpace("Trash", WIDTH*0.8, HEIGHT*0.9, SPACE_WIDTH, SPACE_HEIGHT, id_="TrashSpace", mouse_from=False, mouse_to=True))
                 self.third_stage = True
                 print(f"Third stage ended")
@@ -150,6 +152,8 @@ class GamePrepare(State):
             # deal remining cards and END state
             for player in self.players:
                 self.deck.deal(10, player)
+            self.game_controller.space_interface.get_by_id("PlayerSpace1").sort_active_player_cards()
+
             self.done = True
 
         if self.fourth_stage:
@@ -165,8 +169,8 @@ class GamePrepare(State):
                 print(f"Fifth stage ended")
         return self.fifth_stage
 
-
     def update(self):
+        self.game_controller.space_interface.update()
         self.update_first_stage()
         self.update_second_stage()
         self.update_third_stage()
@@ -185,7 +189,6 @@ class GamePrepare(State):
         self.game_controller.space_interface.hide_by_id("TrashSpace", self.game_controller.gui_interface)
         self.game_controller.space_interface.hide_by_id("DeckSpace", self.game_controller.gui_interface)
         self.game_controller.space_interface.hide_by_id("PickSpace", self.game_controller.gui_interface)
-
 
     def check_input(self, mouse_keys, mouse_pos, mouse_rel, event):
         self.game_controller.gui_interface.check_input(mouse_keys, mouse_pos, mouse_rel, event)

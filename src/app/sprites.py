@@ -23,6 +23,7 @@ class Card(pg.sprite.Sprite):
         self.clicked = False
         self.clicked_pos = None
         self.space_history = [self.space]
+        self.tuple_repr = (self.suit.value, self.value.value)
 
     def __repr__(self):
         return f"{self.value.name} of {self.suit.name}"
@@ -32,6 +33,9 @@ class Card(pg.sprite.Sprite):
     
     def __gt__(self, other):
         return self.value.value > other.value.value
+    
+    def __float__(self):
+        return self.suit.value + self.value.value/CardValue.Ace.value
     
     def add_new_space(self, space: CardSpace):
         self.space_history.append(space)

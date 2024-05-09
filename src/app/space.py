@@ -1,13 +1,13 @@
 import pygame as pg
 from settings import WIDTH, HEIGHT
 import functools 
-
+from utils import sort_cards
 
 class CardSpace:
     rect_color = (50, 50, 50)
     card_offset = 20
 
-    def __init__(self, name: str, x: int, y: int, width: int, height: int, id_: str, mouse_from=False, mouse_to=False):
+    def __init__(self, name: str, x: int, y: int, width: float, height: float, id_: str, mouse_from=False, mouse_to=False):
         self.name = name
         self.x = x
         self.y = y
@@ -22,6 +22,7 @@ class CardSpace:
         self.cards = []
         self.clicked_card = None
         self.labeled = False
+        self.cards_ordered = False
     
     def __repr__(self) -> str:
         return self.name
@@ -39,11 +40,10 @@ class CardSpace:
         
     def add(self, card):
         self.cards.append(card)
-        # self.update()
+        self.adjust_card_position_in_space()
 
     def remove(self, card):
         self.cards.remove(card)
-        # self.update()
     
     def clean(self):
         self.cards = []
@@ -53,10 +53,19 @@ class CardSpace:
         self.remove(card)
         new_space.add(card)
         card.add_new_space(new_space)
-    
+
     def flip_cards(self):
-        for card in self.cards:
+        for card in self.cards: 
             card.flip()
+
+    def adjust_card_position_in_space(self):
+        if self.cards:
+            x_offset = self.x
+            for card in self.cards:
+                card.move((x_offset, self.y))
+                x_offset += self.card_offset
+                if self.mouse_from:
+                    card.back_up = False
 
     def update(self):
         """
@@ -65,13 +74,7 @@ class CardSpace:
         height -> max_card_height
         
         """
-        x_offset = self.x
-        if self.cards:
-            for card in self.cards:
-                card.move((x_offset, self.y))
-                x_offset += self.card_offset
-                if self.mouse_from:
-                    card.back_up = False  
+        pass
 
     def render_cards(self, screen):
         for card in self.cards:
@@ -81,16 +84,23 @@ class CardSpace:
         pg.draw.rect(screen, self.rect_color, self.rect)
 
 class PlayerSpace(CardSpace):
-    def __init__(self, name: str, x: int, y: int, width: int, height: int, id_: str, loot_box_space: CardSpace, mouse_from=False, mouse_to=False):
-        super().__init__(name, x, y, width, height, id_, mouse_to=True, mouse_from=False)
+    def __init__(self, name: str, x: int, y: int, width: float, height: float, id_: str, loot_box_space: CardSpace=None, mouse_from=False, mouse_to=False):
+        super().__init__(name, x, y, width, height, id_, mouse_to=mouse_to, mouse_from=mouse_from)
         self.loot_box_space = loot_box_space
-        self.choosen_game_mode_lst = []
+        # self.choosen_game_mode_lst = []
 
     def add_loot_box_space(self, loot_box_space: CardSpace):
         self.loot_box_space = loot_box_space
 
+    def sort_active_player_cards(self):
+        """Update player cards"""
+        if not self.clicked_card:
+            if self.mouse_from:
+                for card in self.cards:
+                    self.cards = sort_cards(self.cards)      
+
 class GameSpace(CardSpace):
-    def __init__(self, name: str, x: int, y: int, width: int, height: int, id_: str):
+    def __init__(self, name: str, x: int, y: int, width: float, height: float, id_: str):
         super().__init__(name, x, y, width, height, id_, mouse_to=True, mouse_from=False)
         self.cards = []
         self.full = False
@@ -108,9 +118,9 @@ class GameSpace(CardSpace):
         self.full = False
 
     def update(self):
-        super().update()
-        if len(self.cards) == 3:
+        if not self.full and len(self.cards) == 3:
             self.full = True
+            print(f"GameSpace full with: {self.cards}")
         elif len(self.cards) < 3:
             self.full = False
         else:
@@ -145,8 +155,9 @@ class SpaceInterface:
     def add(self, space: CardSpace):
         self.space_list.append(space)
         if hasattr(space, "loot_box_space"):
-            self.space_list.append(space.loot_box_space)
-
+            if space.loot_box_space:
+                self.space_list.append(space.loot_box_space)
+    
     def get_by_id(self, id_: str):
         for element in self.space_list:
             if hasattr(element, "id_") and element.id_ == id_:
@@ -185,7 +196,7 @@ class SpaceInterface:
                     if space.mouse_to and event.type == pg.MOUSEBUTTONUP:
                         self.card_moved.space.transfer(self.card_moved, space)
                         self.card_moved = None
-                space.update()
+                space.adjust_card_position_in_space()
 
                 
                     
