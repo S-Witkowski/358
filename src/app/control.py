@@ -7,6 +7,8 @@ from states.play_game import GamePlay
 from states.end_game import GameEnd
 from gui.interface import GuiInterface
 from space import SpaceInterface
+from AI.base import TableInformation
+
 
 class Control():
     def __init__(self):
@@ -19,6 +21,7 @@ class Control():
         self.fps = FPS
         self.gui_interface = GuiInterface(self.screen)
         self.space_interface = SpaceInterface()
+        self.table_info = TableInformation
         self.states = self._load_states()
         self.state_stack = [next(self.states)]
         self.quit = False

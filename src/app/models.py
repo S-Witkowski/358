@@ -1,35 +1,42 @@
-from enum import Enum
+from sprites import Card
+from typing import List
+from enums import Suit, GameMode
 
-class CardValue(Enum):
-    Deuce = 2
-    Three = 3
-    Four = 4
-    Five = 5
-    Six = 6
-    Seven = 7
-    Eight = 8
-    Nine = 9
-    Ten = 10
-    Jack = 11
-    Queen = 12
-    King = 13
-    Ace = 14
+class CardList:
+    """Process information about card list with the same suit"""
+    def __init__(self, cards: List[Card]) -> None:
+        self.cards = cards
 
-class Suit(Enum):
-    Clubs = 0
-    Diamonds = 1
-    Hearts = 2
-    Spades = 3
+    def number_of_cards(self) -> int:
+        return len(self.cards)
+    
+    def total_power_of_cards(self) -> float:
+        return sum([float(card) for card in self.cards])
+    
+    def weakest_card(self) -> Card|None:
+        if self.cards:
+            min_card = self.cards[0]
+            for card in self.cards:
+                if card < min_card:
+                    min_card = card
+            return min_card
+            
+class CardsDict:
+    """Process information about card list with different suits, usually player hand"""
+    def __init__(self, cards: List[Card]):
+        self.cards = cards
+        self.card_dict = {
+            Suit.Clubs: [],
+            Suit.Diamonds: [],
+            Suit.Hearts: [],
+            Suit.Spades: []
+        }
+        for card in self.cards:
+            self.card_dict[card.suit].append(card)
+        for suit, cards in self.card_dict.items():
+            self.card_dict[suit] = CardList(cards) # type: ignore
 
-class GameMode(Enum):
-    Clubs = 0
-    Diamonds = 1
-    Hearts = 2
-    Spades = 3
-    NoTrump = 4
-    NoTricks = 5
 
-class PlayerPosition(Enum):
-    Three = 0
-    Five = 1
-    Eight = 2
+
+
+

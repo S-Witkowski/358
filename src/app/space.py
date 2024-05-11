@@ -68,12 +68,6 @@ class CardSpace:
                     card.back_up = False
 
     def update(self):
-        """
-        Adjust position of cards
-        width -> card_spacing
-        height -> max_card_height
-        
-        """
         pass
 
     def render_cards(self, screen):
@@ -96,14 +90,14 @@ class PlayerSpace(CardSpace):
         """Update player cards"""
         if not self.clicked_card:
             if self.mouse_from:
-                for card in self.cards:
-                    self.cards = sort_cards(self.cards)      
+                self.cards = sort_cards(self.cards)      
 
 class GameSpace(CardSpace):
     def __init__(self, name: str, x: int, y: int, width: float, height: float, id_: str):
         super().__init__(name, x, y, width, height, id_, mouse_to=True, mouse_from=False)
         self.cards = []
         self.full = False
+        self.first_card_on_table = None
 
     def transfer_all(self, new_space: CardSpace):
         print(f"transfer all {self.cards} from {self} to {new_space}")
@@ -116,11 +110,19 @@ class GameSpace(CardSpace):
         if self.cards:
             raise ValueError(f"GameSpace should have 0 cards after transfer_all method, found {len(self.cards)}")
         self.full = False
+        self.first_card_on_table = None
 
     def update(self):
+        for card in self.cards:
+            card.back_up = False
+
+        if not self.first_card_on_table and len(self.cards) == 1:
+            self.first_card_on_table = self.cards[0]
+        elif self.first_card_on_table and len(self.cards) == 0:
+            self.first_card_on_table = None
+
         if not self.full and len(self.cards) == 3:
             self.full = True
-            print(f"GameSpace full with: {self.cards}")
         elif len(self.cards) < 3:
             self.full = False
         else:
@@ -180,7 +182,7 @@ class SpaceInterface:
         for space in self.space_list:
             space.update()
     
-    def check_input(self, mouse_keys, mouse_pos, mouse_rel, event):
+    def check_input(self, mouse_keys, mouse_pos, mouse_rel, event, rules=None):
         for card in self.all_cards:
             card.check_input(mouse_keys, mouse_pos, mouse_rel, event)
         # implement movement for one clicked card
@@ -193,8 +195,19 @@ class SpaceInterface:
                     self.card_moved = clicked_card
             else:
                 if self.card_moved:
-                    if space.mouse_to and event.type == pg.MOUSEBUTTONUP:
-                        self.card_moved.space.transfer(self.card_moved, space)
+                    if space.mouse_to and event.type == pg.MOUSEBUTTONUP and space.rect.collidepoint(mouse_pos):
+                        if rules and self.get_by_id("GameSpace").first_card_on_table:
+                            if rules.validate_card(
+                                self.card_moved, 
+                                self.get_by_id("GameSpace").first_card_on_table.suit
+                                ):
+                                self.card_moved.space.transfer(self.card_moved, space)
+                            else:
+                                print(f"{self.card_moved} can't be moved to {space}!")
+                        else:
+                            self.card_moved.space.transfer(self.card_moved, space)
+
+                        print(f"{self.card_moved} moved to {space.name}")
                         self.card_moved = None
                 space.adjust_card_position_in_space()
 

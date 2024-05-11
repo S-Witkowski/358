@@ -35,6 +35,7 @@ class GamePrepare(State):
         self.game_controller.space_interface.add(self.deck)
         self.game_controller.space_interface.load_all_cards()
         self.cards = self.deck.cards
+        self.game_controller.table_info.all_cards = self.cards
         print(f"Deck prepared with {len(self.cards)} cards")
 
         self.game_controller.space_interface.add(PlayerSpace("You", 25, HEIGHT*0.3, SPACE_WIDTH, SPACE_HEIGHT, id_="PlayerSpace1", mouse_from=True, mouse_to=False))
@@ -102,6 +103,7 @@ class GamePrepare(State):
                     id_="GameModeSelectedIcon"
                 )
                 self.game_mode_selected = self.game_mode_selection_box.icon_selected.game_mode
+                self.game_controller.table_info.game_mode_salected = self.game_mode_selected
                 self.second_stage = True
                 print(f"Second stage ended")
         return self.second_stage
@@ -137,6 +139,7 @@ class GamePrepare(State):
             if not self.fourth_stage:
                 if len(self.game_controller.space_interface.get_by_id("TrashSpace").cards) == 4:
                     self.game_controller.space_interface.get_by_id("TrashSpace").flip_cards()
+                    self.game_controller.table_info.trashed_cards = self.game_controller.space_interface.get_by_id("TrashSpace").cards
                     self.fourth_stage = True
                     print(f"Fourth stage ended")
         return self.fourth_stage

@@ -1,6 +1,6 @@
 import pytest
 from src.app.space import CardSpace
-from src.app.models import Suit, CardValue
+from app.enums import Suit, CardValue
 from app.game import Card
 
 def test_space():

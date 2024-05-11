@@ -5,7 +5,7 @@ try:
     import pygame as pg
     from typing import Tuple
     from threading import Timer
-    from models import GameMode
+    from enums import GameMode
 except ImportError as err:
     print("Fail loading a module in file:", __file__, "\n", err)
     sys.exit(2)

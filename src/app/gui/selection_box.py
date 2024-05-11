@@ -1,7 +1,7 @@
 
 import pygame as pg
 from settings import WIDTH
-from models import GameMode
+from enums import GameMode
 from gui.elements import Icon, AbstractGUIElement
 from utils import load_and_transform_image
 

@@ -1,6 +1,6 @@
 
 import pygame as pg
-from models import Suit, CardValue, GameMode
+from enums import Suit, CardValue, GameMode
 from space import CardSpace
 from utils import load_and_transform_image
 
@@ -29,10 +29,10 @@ class Card(pg.sprite.Sprite):
         return f"{self.value.name} of {self.suit.name}"
     
     def __lt__(self, other):
-        return self.value.value < other.value.value
+        return float(self) < float(other)
     
     def __gt__(self, other):
-        return self.value.value > other.value.value
+        return float(self) > float(other)
     
     def __float__(self):
         return self.suit.value + self.value.value/CardValue.Ace.value
