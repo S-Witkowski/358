@@ -1,6 +1,8 @@
 import pygame as pg
-from settings import WIDTH, HEIGHT
 import functools 
+
+from models.scores_models import PlayerInfo
+from settings import MARIGIN_PERC
 from utils import sort_cards
 
 class CardSpace:
@@ -21,22 +23,21 @@ class CardSpace:
         self.rect = pg.Rect(x, y, width, height)
         self.cards = []
         self.clicked_card = None
-        self.labeled = False
+        self.label = None
         self.cards_ordered = False
     
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return self.name
 
     def add_label(self, gui_interface):
-        if not self.labeled:
-            gui_interface.show_label(
-                    (self.x, self.y - HEIGHT*0.02), 
+        if not self.label:
+            self.label = gui_interface.show_label(
+                    (self.x, self.y - self.height*0.1), 
                     f"{self.name}", 
                     color=(245, 245, 245), 
                     timeout=0,
                     id_=f"CardSpaceLabel{self.name}"
                     )
-            self.labeled = True
         
     def add(self, card):
         self.cards.append(card)
@@ -78,13 +79,13 @@ class CardSpace:
         pg.draw.rect(screen, self.rect_color, self.rect)
 
 class PlayerSpace(CardSpace):
-    def __init__(self, name: str, x: int, y: int, width: float, height: float, id_: str, loot_box_space: CardSpace=None, mouse_from=False, mouse_to=False):
+    def __init__(self, name: str, x: int, y: int, width: float, height: float, id_: str, player_info: PlayerInfo, mouse_from=False, mouse_to=False):
         super().__init__(name, x, y, width, height, id_, mouse_to=mouse_to, mouse_from=mouse_from)
-        self.loot_box_space = loot_box_space
-        # self.choosen_game_mode_lst = []
+        self.loot_box_space = None
+        self.player_info = player_info
 
-    def add_loot_box_space(self, loot_box_space: CardSpace):
-        self.loot_box_space = loot_box_space
+    def add_loot_box_space(self):
+        self.loot_box_space = CardSpace(f"{self.name}Loot", self.x, self.y + self.height + self.height*MARIGIN_PERC, self.width, self.height, id_=f"{self.name}LootSpace")
 
     def sort_active_player_cards(self):
         """Update player cards"""
@@ -156,10 +157,13 @@ class SpaceInterface:
 
     def add(self, space: CardSpace):
         self.space_list.append(space)
-        if hasattr(space, "loot_box_space"):
-            if space.loot_box_space:
-                self.space_list.append(space.loot_box_space)
-    
+
+    def add_loot_box_space(self, player: PlayerSpace):
+        player.add_loot_box_space()
+        if hasattr(player, "loot_box_space"):
+            if player.loot_box_space:
+                self.space_list.append(player.loot_box_space)
+
     def get_by_id(self, id_: str):
         for element in self.space_list:
             if hasattr(element, "id_") and element.id_ == id_:

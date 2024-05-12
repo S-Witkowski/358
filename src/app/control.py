@@ -1,27 +1,25 @@
 
-import os
 import pygame as pg
-from settings import WIDTH, HEIGHT, FPS
+from settings import FPS
+
 from states.prepare_game import GamePrepare
 from states.play_game import GamePlay
 from states.end_game import GameEnd
+from states.new_game import GameNew
+
 from gui.interface import GuiInterface
 from space import SpaceInterface
-from AI.base import TableInformation
-
 
 class Control():
     def __init__(self):
         pg.init()
         pg.display.set_caption("358")
-        bounds = (WIDTH, HEIGHT)
-        self.screen = pg.display.set_mode(bounds)
+        self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
         self.screen_rect = self.screen.get_rect()
         self.clock = pg.time.Clock()
         self.fps = FPS
         self.gui_interface = GuiInterface(self.screen)
         self.space_interface = SpaceInterface()
-        self.table_info = TableInformation
         self.states = self._load_states()
         self.state_stack = [next(self.states)]
         self.quit = False
@@ -29,6 +27,7 @@ class Control():
 
     def _load_states(self):
         for state in [
+            GameNew(self),
             GamePrepare(self),
             GamePlay(self),
             GameEnd(self)
@@ -70,7 +69,7 @@ class Control():
         pg.display.update()
 
     def run(self):
-        while not self.quit:
+        while not self.quit and not self.state_stack[-1].quit:
             self.event_loop()
             self.update()
             self.render()

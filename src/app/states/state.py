@@ -16,8 +16,11 @@ class State(ABC):
         self.game_controller.state_stack.append(self)
         print(f"new state: {self}")
 
+    def next_state(self):
+        self.done = True
+
     def exit_state(self):
-        self.game_controller.state_stack.pop()
+        self.quit = True
 
     @abstractmethod
     def check_input(self, mouse_keys, mouse_pos, mouse_rel, event=None):

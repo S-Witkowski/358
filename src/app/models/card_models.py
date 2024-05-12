@@ -1,6 +1,6 @@
 from sprites import Card
 from typing import List
-from enums import Suit, GameMode
+from models.enums import Suit
 
 class CardList:
     """Process information about card list with the same suit"""
@@ -35,8 +35,3 @@ class CardsDict:
             self.card_dict[card.suit].append(card)
         for suit, cards in self.card_dict.items():
             self.card_dict[suit] = CardList(cards) # type: ignore
-
-
-
-
-

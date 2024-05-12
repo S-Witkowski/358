@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from sprites import Card
-from enums import GameMode
+from models.enums import GameMode
 from rules import Rules
 
 from typing import List

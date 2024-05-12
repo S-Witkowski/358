@@ -5,14 +5,15 @@ try:
     import pygame as pg
     from typing import Tuple
     from threading import Timer
-    from enums import GameMode
+    from models.enums import GameMode
+    from settings import LABEL_COLOR
 except ImportError as err:
     print("Fail loading a module in file:", __file__, "\n", err)
     sys.exit(2)
 
 
 class AbstractGUIElement(metaclass=abc.ABCMeta):
-    def __init__(self, screen, text="", text_size=15, color=(0, 0, 0), id_=""):
+    def __init__(self, screen, text="", text_size=15, color=LABEL_COLOR, id_=""):
         self.screen = screen
         self.text = text
         self.text_size = text_size
@@ -38,7 +39,7 @@ class Button(AbstractGUIElement):
     text_margin = (3, 3)
 
     def __init__(self, screen, rect, onclick, text="", text_size=15, color=(0, 0, 0), id_=""):
-        AbstractGUIElement.__init__(self, screen, text, text_size, color, id_)
+        AbstractGUIElement.__init__(self, screen, text, text_size=text_size, color=color, id_=id_)
         self.onclick = onclick
         self.font = pg.font.SysFont('arial', self.text_size, bold=1)
         self.text_surface = self.font.render(self.text, True, color)
@@ -72,22 +73,35 @@ class Button(AbstractGUIElement):
 
 
 class Label(AbstractGUIElement):
-    def __init__(self, screen, pos, text="", text_size=15, color=(0, 0, 0), timeout=3, id_=""):
+    def __init__(self, screen, pos, text, text_size=15, color=LABEL_COLOR, timeout=3, id_=""):
         AbstractGUIElement.__init__(self, screen, text, text_size, color, id_)
         self.font = pg.font.SysFont('arial', self.text_size, bold=1)
         self.pos = pos
+        self.timeout = timeout
+        self.init_text = text
         self.expired = False
         if timeout != 0:
             self.timer = Timer(timeout, self.expire)
             self.timer.start()
+            self.alpha = LABEL_COLOR[2]
+
+    def update_text(self, text: str):
+        self.text = f"{self.init_text} | score: {text}"
 
     def expire(self):
         self.expired = True
 
     def render(self):
         if self.text != "":
-            text_surface = self.font.render(self.text, True, self.color)
-            self.screen.blit(text_surface, self.pos)
+            if self.timeout != 0:
+                if self.alpha > 30:
+                    self.alpha = max(0, self.alpha - self.timeout)
+                    text_surface = self.font.render(self.text, True, self.color)
+                    text_surface.set_alpha(self.alpha)
+                    self.screen.blit(text_surface, self.pos)
+            else:
+                text_surface = self.font.render(self.text, True, self.color)
+                self.screen.blit(text_surface, self.pos)
 
     def check_mouse(self, pos, down):
         """ No action on click for text label """

@@ -1,5 +1,5 @@
 from sprites import Card
-from enums import GameMode, Suit
+from models.enums import GameMode, Suit
 from typing import List
 
 class Rules:

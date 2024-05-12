@@ -42,14 +42,14 @@ class GuiInterface(object):
         self.gui_list.append(element)
         return element
     
-    def show_selection_box(self, position, id_=""):
+    def show_selection_box(self, rect, id_=""):
         """ Creates text button on the screen. The button is stored in the internal gui_list
         list and gets rendered automatically.
         :param position: tuple with coordinates (x,y) of top left corner of the label
         :param id_: string ID of the button, should be unique for each GUI element
         :return: object of gui.Button
         """
-        element = GameModeSelectionBox(self.screen, position, id_)
+        element = GameModeSelectionBox(self.screen, rect, id_)
         self.gui_list.append(element)
         return element
     

@@ -1,6 +1,6 @@
 from AI.base import AbstractAI, TableInformation
-from enums import GameMode, Suit
-from models import CardsDict
+from models.enums import GameMode, Suit
+from models.card_models import CardsDict
 from sprites import Card
 from rules import Rules
 from random import choice

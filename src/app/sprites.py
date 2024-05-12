@@ -1,6 +1,6 @@
 
 import pygame as pg
-from enums import Suit, CardValue, GameMode
+from models.enums import Suit, CardValue, GameMode
 from space import CardSpace
 from utils import load_and_transform_image
 

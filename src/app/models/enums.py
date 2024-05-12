@@ -37,5 +37,7 @@ class GameMode(Enum):
     def get_no_trumps(cls):
         return cls.NoTrump, cls.NoTricks
 
-
-
+class PlayerPosition(Enum):
+    First = 0
+    Second = 1
+    Third = 2

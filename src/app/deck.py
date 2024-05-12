@@ -1,4 +1,4 @@
-from enums import Suit, CardValue
+from models.enums import Suit, CardValue
 from sprites import Card
 from space import CardSpace
 import random
