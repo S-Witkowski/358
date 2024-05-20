@@ -93,6 +93,9 @@ class ScoreBoard:
 
         return order
     
+    def get_winner(self) -> PlayerSpace:
+        return max(self.players, key=lambda p: p.player_info.total_score)
+
     def get_player_by_id(self, id_: str) -> PlayerSpace:
         for p in self.players:
             if p.id_ == id_:
