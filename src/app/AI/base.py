@@ -1,25 +1,26 @@
 from abc import ABC, abstractmethod
-
-from sprites import Card
+from space import PlayerSpace
+from sprites import CardSprite
 from models.enums import GameMode
 from rules import Rules
 
-from typing import List
-
 class TableInformation:
-    all_cards: List[Card]=[]
-    trashed_cards: List[Card]=[]
-    hand_cards: List[Card]=[]
-    used_cards: List[Card]=[]
-    game_space_cards: List[Card]=[]
-    game_mode_salected: GameMode=None
+    all_cards: list[CardSprite]=[]
+    trashed_cards: list[CardSprite]=[]
+    hand_cards: list[CardSprite]=[]
+    used_cards: list[CardSprite]=[]
+    game_space_cards: list[CardSprite]=[]
+    game_mode_selected: GameMode=None
 
-    def __repr__(self):
-        kws = [f"{key}={value!r}" for key, value in self.__dict__.items()]
-        return "{}({})".format(type(self).__name__, ", ".join(kws))
+    def reset(cls):
+        cls.trashed_cards = []
+        cls.hand_cards = []
+        cls.used_cards = []
+        cls.game_space_cards = []
+        cls.game_mode_selected = None
     
     @classmethod
-    def get_remaining_opponent_cards(cls):
+    def get_remaining_opponent_cards(cls) -> list:
         return list(set(cls.all_cards).difference(
             set(cls.trashed_cards), 
             set(cls.hand_cards), 
@@ -34,4 +35,12 @@ class AbstractAI(ABC):
 
     @abstractmethod
     def choose_best_card(self):
+        pass
+
+    @abstractmethod
+    def choose_game_mode(self, player: PlayerSpace) -> GameMode:
+        pass
+
+    @abstractmethod
+    def choose_trash_cards(self, player: PlayerSpace) -> list[CardSprite]:
         pass

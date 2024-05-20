@@ -1,5 +1,5 @@
 from models.enums import Suit, CardValue
-from sprites import Card
+from sprites import Card, CardSprite
 from space import CardSpace
 import random
 
@@ -11,13 +11,13 @@ class Deck(CardSpace):
         for suit in Suit:
             for value in CardValue:
                 self.cards.append(
-                    Card(
+                    CardSprite(
                         suit=suit, 
                         value=value,
                         space=self, 
                         x=0,
                         y=0,
-                        space_width=self.width,
+                        space_width=width,
                         back_up=True
                         )
                     )

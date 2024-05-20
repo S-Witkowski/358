@@ -12,9 +12,7 @@ class State(ABC):
     def enter_state(self):
         if len(self.game_controller.state_stack) >= 1:
             self.prev_state = self.game_controller.state_stack[-1]
-            print(f"prev state: {self.prev_state}")
         self.game_controller.state_stack.append(self)
-        print(f"new state: {self}")
 
     def next_state(self):
         self.done = True
@@ -33,5 +31,9 @@ class State(ABC):
 
     @abstractmethod
     def render(self, screen):
+        pass
+
+    @abstractmethod
+    def cleanup(self):
         pass
 

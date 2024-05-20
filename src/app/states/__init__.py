@@ -1,0 +1,1 @@
+"""Stores states of the game. State should fallow state.py abc class. States order of transitions is controlled in control.py _change_state method."""

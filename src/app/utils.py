@@ -1,8 +1,6 @@
 import os
 import pygame as pg
-# from sprites import Card
 from random import randint
-from typing import List
 
 def load_image(*args):
     sourceFileDir = os.path.dirname(os.path.abspath(__file__))
@@ -20,16 +18,18 @@ def load_and_transform_image(*args, space_width, size_factor):
     return transform_image_size(image, space_width, size_factor)
 
 ### Util funcs for list of cards
-def sort_cards(cards):
+def sort_cards(cards: list) -> list:
+    def to_number(card) -> float:
+        return card.suit.value + card.value.value/14
     if len(cards) < 2:
         return cards
     low, same, high = [], [], []
     pivot = cards[randint(0, len(cards) - 1)]
     for card in cards:
-        if float(card) < float(pivot):
+        if to_number(card) < to_number(pivot):
             low.append(card)
-        elif float(card) == float(pivot):
+        elif to_number(card) == to_number(pivot):
             same.append(card)
-        elif float(card) > float(pivot):
+        elif to_number(card) > to_number(pivot):
             high.append(card)
     return sort_cards(low) + same + sort_cards(high)

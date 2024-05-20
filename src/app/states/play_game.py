@@ -1,10 +1,7 @@
 import pygame as pg
 from .state import State
 from space import GameSpace
-from rules import Rules
 from settings import WIDTH, HEIGHT
-from AI.classic import ClassicAI
-
 import functools 
 
 SPACE_HEIGHT = HEIGHT*0.15
@@ -19,21 +16,23 @@ class GamePlay(State):
 
         self.post_init_flag = False
         self.next_turn = True
+        self.next_round = False
+        self.ready_next_round = False
+        self.end_game = False
 
     def post_init(self):
         """ Called after the previous state is finished"""
         if not self.post_init_flag:
-            print(f"Initializing state: {self}")
-            self.rules = Rules(self.prev_state.game_mode_selected)
-            self.AI = ClassicAI(self.game_controller.table_info, self.rules)
-
             self._prepare_spaces()
             self.current_turn_order = self.game_controller.score_board.get_turn_order(self.game_controller.score_board.game_mode_picking_player_space)
             self.current_player_space = None
             self.post_init_flag = True
 
     def _prepare_spaces(self):
-        self.game_space = GameSpace("Game", self.widht*0.4, self.height*0.4, self.widht*0.2, self.height*0.2, id_="GameSpace")
+        self.game_space = GameSpace(
+            "Game", 
+            self.widht*0.4, self.height*0.45, self.widht*0.15, self.height*0.15, 
+            id_="GameSpace")
         self.game_controller.space_interface.add(self.game_space)
 
         self.game_controller.space_interface.add_loot_box_space(self.game_controller.space_interface.get_by_id("PlayerSpace1"))
@@ -42,68 +41,110 @@ class GamePlay(State):
 
         for space in self.game_controller.space_interface.space_list:
             space.add_label(self.game_controller.gui_interface)
-        print(f"Active spaces: {self.game_controller.space_interface.space_list}")
+        print(f"Active spaces: {[i.id_ for i in self.game_controller.space_interface.space_list]}")
     
     def choose_best_card(self):
         pg.time.wait(1000)
-        return self.AI.choose_best_card()
-    
-    def decide_strongest_card_player(self):
-        strongest_card = functools.reduce(
-            lambda x, y: self.rules.compare(x, y, self.game_space.first_card_on_table.suit), 
-                        self.game_space.cards) 
+        return self.game_controller.AI.choose_best_card()
+                
+    def _decide_strongest_card_player(self):
+        strongest_card = self.game_controller.rules.get_game_space_strongest_card(self.game_space.cards, self.game_space.first_card_on_table.suit, self.prev_state.game_mode_selected)
         strongest_card_player = strongest_card.space_history[-2]
         player_space_loot_box = strongest_card_player.loot_box_space
         self.game_space.transfer_all(player_space_loot_box)
+        self.game_controller.space_interface.adjust_all_space_card_position()
+        self.game_controller.gui_interface.show_label(
+            rect=(self.widht*0.45, self.height*0.4, self.widht*0.2, self.height*0.2), 
+            text=f"strongest_card {strongest_card} goes to {strongest_card_player.name}", 
+            timeout=3,
+            id_="TempLabel"
+        )
+        print(f"decide_strongest_card_player log: strongest_card -> {strongest_card}, strongest_card_player -> {strongest_card_player.name}, player_space_loot_box -> {player_space_loot_box.name}")
         return strongest_card_player
-
-    def new_turn(self):
+        
+    def check_game_space_full(self):
+        """Check if the game space is full:
+            1. If yes, decide the strongest card player
+            2. Transfer game space cards to strongest card player loot box
+            3. Update score board
+            4. Update turn_order
+            5. Update table info
+            6. Update label
+        """
         if self.game_space.full:
+            print(f"check_game_space_full...")
             pg.time.wait(1000)
-            # game_space full with 3 cards - decide which card won and update new turn order
-            strongest_card_player = self.decide_strongest_card_player()
-            self.game_controller.score_board.update_current_score(strongest_card_player)
+            strongest_card_player = self._decide_strongest_card_player()
+            self.game_controller.score_board.update_current_score(strongest_card_player, self.game_controller.table_info.game_mode_selected)
             self.current_turn_order = self.game_controller.score_board.get_turn_order(strongest_card_player)
-            print(f"strongest card from: {strongest_card_player.name}, new order: {list(self.current_turn_order)}")
+            self.update_table_info()
+            for player in self.game_controller.score_board.players:
+                player.label.update_text(str(player.player_info.current_score))
             self.next_turn = True
 
-        if self.next_turn: # new turn, reset next_turn status and get new player
-            for player in self.game_controller.score_board.players:
-                player.label.update_text(player.player_info.current_score)
+    def check_end_game(self):
+        """Check if game should end"""
+        if self.game_controller.score_board.rounds_played == 18: # last round ended
+            print(f"check_end_game...")
+            self.done = True
+            self.end_game = True
+
+    def __update_ready_next_round(self):
+        self.ready_next_round = True
+
+    def check_next_round(self):
+        """Check if next round should be started"""
+        cards_total_in_player_spaces = sum([len(player_space.cards) for player_space in self.game_controller.score_board.players])
+        if cards_total_in_player_spaces == 0: # next round preparation
+            self.next_turn = False
+            self.next_round = True
+            if not self.game_controller.gui_interface.get_by_id("GoToNextRoundButton"):
+                self.game_controller.gui_interface.show_button(
+                    rect=(self.widht*0.4, self.height*0.35, self.widht*0.2, self.height*0.2), 
+                    callback=self.__update_ready_next_round,
+                    text=f"Go to next round", 
+                    id_="GoToNextRoundButton"
+                )
+            if self.ready_next_round:
+                print(f"ready_next_round...")
+                self.game_controller.score_board.update_score_board_for_next_round()
+                self.game_controller.table_info.reset()
+                self.done = True
+        
+    def check_new_turn(self):
+        """ Start turn for next player"""
+        if self.next_turn and not self.next_round:
+            print(f"check_new_turn...")
+            self.game_controller.space_interface.adjust_all_space_card_position()
             self.current_player_space = self.current_turn_order.pop(0)
             self.update_table_info()
             self.next_turn = False
             print(f"new turn for new player: {self.current_player_space.name}")
 
     def wait_for_player_input(self):
-        if self.current_player_space.mouse_from and not self.next_turn:
+        if self.current_player_space.mouse_from and not self.next_turn and not self.next_round:
             if self.game_space.cards:
                 for card in self.game_space.cards:
                     if card.space_history[-2] == self.current_player_space:
+                        print(f"player card in {self.game_space.name}: {card}")
                         self.next_turn = True
 
     def wait_for_bot_input(self):
-        if not self.current_player_space.mouse_from and not self.next_turn:
-            if self.game_space.cards:
-                if [card.space_history[-2] == self.current_player_space for card in self.game_space.cards]: # if bot card not in game space
+        if not self.current_player_space.mouse_from and not self.next_turn and not self.next_round:
+            if not self.current_player_space.cards_moving:
+                if self.game_space.cards:
+                    bot_cards_in_game_space = [card for card in self.game_space.cards if card.space_history[-2] == self.current_player_space]
+                    if not bot_cards_in_game_space:
+                        choosed_best_card = self.choose_best_card()
+                        self.current_player_space.move_to_space(choosed_best_card, self.game_space)
+                        print(f"{self.current_player_space.name} card {choosed_best_card} moving into {self.game_space.name}...")
+                    else:                  
+                        print(f"bot card in {self.game_space.name}")
+                        self.next_turn = True
+                else:
                     choosed_best_card = self.choose_best_card()
-                    print(f"{self.current_player_space.name} choosed {choosed_best_card}")
-                    self.current_player_space.transfer(choosed_best_card, self.game_space)
-                    choosed_best_card.flip()
-                    print(f"bot card in {self.game_space.name}: {choosed_best_card}")
-                    self.next_turn = True
-            else:
-                choosed_best_card = self.choose_best_card()
-                self.current_player_space.transfer(choosed_best_card, self.game_space)
-                choosed_best_card.flip()
-                print(f"bot card in {self.game_space.name}: {choosed_best_card}")
-                self.next_turn = True    
-
-    def check_end_game(self):
-        cards_total_in_player_space = sum([len(player_space.cards) for player_space in self.game_controller.score_board.players])
-        if cards_total_in_player_space == 0:
-            print("Round ended!")
-            self.done = True
+                    self.current_player_space.move_to_space(choosed_best_card, self.game_space)
+                    print(f"{self.current_player_space.name} card {choosed_best_card} moving into {self.game_space.name}...")
             
     def update_table_info(self):
         used_cards = [] 
@@ -118,21 +159,37 @@ class GamePlay(State):
             self.game_controller.table_info.game_space_cards = self.game_space.cards
 
     def update(self):
-        """Implement update method to update game state"""
+        """Updates once per turn"""
         self.post_init()
-
         self.game_controller.space_interface.update()
-
+        self.game_controller.gui_interface.update()
+        self.check_game_space_full()
+        self.check_next_round()
+        self.check_end_game()
         self.update_table_info()
-        self.new_turn()
+
+        self.check_new_turn()
         self.wait_for_bot_input()
         self.wait_for_player_input()
-        self.check_end_game()
             
     def render(self, screen):
         self.game_controller.space_interface.render(screen)
         self.game_controller.gui_interface.render()
 
+    def cleanup(self):
+        self.game_controller.space_interface.hide_by_id("PlayerSpace1LootSpace", self.game_controller.gui_interface)
+        self.game_controller.space_interface.hide_by_id("PlayerSpace2LootSpace", self.game_controller.gui_interface)
+        self.game_controller.space_interface.hide_by_id("PlayerSpace3LootSpace", self.game_controller.gui_interface)
+        self.game_controller.space_interface.hide_by_id("GameSpace", self.game_controller.gui_interface)
+        self.game_controller.gui_interface.hide_by_id("GoToNextRoundButton")
+        for p in self.game_controller.score_board.players:
+            p.clean()
+
     def check_input(self, mouse_keys, mouse_pos, mouse_rel, event):
         self.game_controller.gui_interface.check_input(mouse_keys, mouse_pos, mouse_rel, event)
-        self.game_controller.space_interface.check_input(mouse_keys, mouse_pos, mouse_rel, event, self.rules)
+        self.game_controller.space_interface.check_input(mouse_keys, mouse_pos, mouse_rel, event, functools.partial(
+            self.game_controller.rules.validate_card,
+                first_on_table_suit=self.game_controller.AI.get_first_card_on_table_suit(),
+                game_mode_selected=self.game_controller.table_info.game_mode_selected
+            )
+        )

@@ -7,6 +7,8 @@ class GameEnd(State):
         super().__init__(game_controller)
         self.game_controller = game_controller
 
+
+
     def check_input(self, mouse_keys, mouse_pos, mouse_rel, event):
         self.game_controller.gui_interface.check_input(mouse_keys, mouse_pos, mouse_rel, event)
         self.game_controller.space_interface.check_input(mouse_keys, mouse_pos, mouse_rel, event)
