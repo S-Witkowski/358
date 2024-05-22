@@ -6,6 +6,8 @@ class GameEnd(State):
     def __init__(self, game_controller):
         super().__init__(game_controller)
         self.game_controller = game_controller
+        self.width = self.game_controller.screen.get_width()
+        self.height = self.game_controller.screen.get_height()
         self.game_end_summary = False
 
     def check_input(self, mouse_keys, mouse_pos, mouse_rel, event):
@@ -15,12 +17,12 @@ class GameEnd(State):
     def update(self):
         if not self.game_end_summary:
             self.game_controller.gui_interface.show_label(
-                rect=(self.widht*0.4, self.height*0.1, self.widht*0.2, self.height*0.2), 
+                rect=(self.width*0.4, self.height*0.1, self.width*0.2, self.height*0.2), 
                 text=f"Game ended, {self.game_controller.score_board.get_winner().name} wins!", 
                 id_="GameEndSummary"
             )
             self.game_controller.gui_interface.show_button(
-                rect=(self.widht*0.4, self.height*0.35, self.widht*0.2, self.height*0.2), 
+                rect=(self.width*0.4, self.height*0.35, self.width*0.2, self.height*0.2), 
                 callback=self.cleanup,
                 text=f"End game", 
                 id_="EndGameButton"

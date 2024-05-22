@@ -93,6 +93,12 @@ class ScoreBoard:
 
         return order
     
+    def check_game_end(self) -> bool:
+        for p in self.players:
+            if len(p.player_info.available_game_mode_names) != 0:
+                return False
+        return True
+    
     def get_winner(self) -> PlayerSpace:
         return max(self.players, key=lambda p: p.player_info.total_score)
 

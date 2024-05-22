@@ -119,7 +119,6 @@ class ScoreBoardBox(AbstractGUIElement):
 
     def update_game_mode_icon(self):
         if self.score_board.game_mode and not self.icon_rendered:
-            print("Score board icon updated")
             image = None
             size_factor = 0.35
             if self.score_board.game_mode == GameMode.Clubs:

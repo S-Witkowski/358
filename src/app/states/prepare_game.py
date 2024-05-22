@@ -148,7 +148,7 @@ class GamePrepare(State):
                 # add trash space and show hint label
                 self.game_controller.space_interface.add(CardSpace(
                     "Trash", 
-                    self.widht*0.45, self.height*0.6, self.widht*0.1, self.height*CARD_SPACE_HEIGHT_PERC, 
+                    self.widht*0.45, self.height*0.6, self.widht*0.2, self.height*CARD_SPACE_HEIGHT_PERC, 
                     id_="TrashSpace", 
                     image=load_and_transform_image("trash_space.png", space_width=self.widht*0.1, size_factor=1),
                     mouse_from=False, mouse_to=trash_mouse_to

@@ -42,10 +42,10 @@ class Control():
             elif isinstance(self.state_stack[-1], GameEnd):
                 self.quit = True
             elif isinstance(self.state_stack[-1], GamePlay):
-                if self.state_stack[-1].next_round:
-                    new_state = GamePrepare(self)
-                else:
+                if self.state_stack[-1].end_game:
                     new_state = GameEnd(self)
+                else:
+                    new_state = GamePrepare(self)
             if new_state:
                 self.state_stack[-1].cleanup()
                 new_state.enter_state()

@@ -11,4 +11,3 @@ class PlayerInfo:
 
     def update_available_game_mode_names(self, game_mode: GameMode):
         self.available_game_mode_names.remove(game_mode.name)
-        print(f"game mode {game_mode} removed from {self.available_game_mode_names} from {self}")

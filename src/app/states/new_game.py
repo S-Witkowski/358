@@ -22,13 +22,13 @@ class GameNew(State):
                 self.widht*PLAYER_WIDTH_REL*2, self.height*(1-MARIGIN_PERC-CARD_SPACE_HEIGHT_PERC-CARD_SPACE_HEIGHT_PERC), self.widht*PLAYER_WIDTH_REL, self.height*CARD_SPACE_HEIGHT_PERC, 
                 id_="PlayerSpace1", 
                 player_info=PlayerInfo(player_position=PlayerPosition.First), 
-                mouse_from=True, mouse_to=False
+                mouse_from=False, mouse_to=False
                 )
             )
         self.game_controller.space_interface.add(
             PlayerSpace(
                 "Bot 1", 
-                self.widht*MARIGIN_PERC, self.height*0.3, self.widht*PLAYER_WIDTH_REL, self.height*CARD_SPACE_HEIGHT_PERC, 
+                self.widht*MARIGIN_PERC, self.height*0.25, self.widht*PLAYER_WIDTH_REL, self.height*CARD_SPACE_HEIGHT_PERC, 
                 id_="PlayerSpace2", 
                 player_info=PlayerInfo(player_position=PlayerPosition.Second),
                 mouse_from=False, mouse_to=False
@@ -37,7 +37,7 @@ class GameNew(State):
         self.game_controller.space_interface.add(
             PlayerSpace(
                 "Bot 2", 
-                self.widht*(1-PLAYER_WIDTH_REL-MARIGIN_PERC), self.height*0.3, self.widht*PLAYER_WIDTH_REL, self.height*CARD_SPACE_HEIGHT_PERC, 
+                self.widht*(1-PLAYER_WIDTH_REL-MARIGIN_PERC), self.height*0.25, self.widht*PLAYER_WIDTH_REL, self.height*CARD_SPACE_HEIGHT_PERC, 
                 id_="PlayerSpace3", 
                 player_info=PlayerInfo(player_position=PlayerPosition.Third), 
                 mouse_from=False, mouse_to=False

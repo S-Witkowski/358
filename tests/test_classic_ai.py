@@ -99,6 +99,35 @@ def test_ai_choose_game_mode_3():
     ai = ClassicAI(table_info, rules)
     assert ai.choose_game_mode(PLAYER_SPACE).name == GameMode.NoTricks.name
 
+def test_ai_choose_game_mode_last_choice():
+    card_1 = [c for c in DECK_CARDS if str(c) == str(Card(Suit.Spades, CardValue.Ace))][0] 
+    card_2 = [c for c in DECK_CARDS if str(c) == str(Card(Suit.Spades, CardValue.Four))][0]
+    card_3 = [c for c in DECK_CARDS if str(c) == str(Card(Suit.Hearts, CardValue.Seven))][0]  
+    card_4 = [c for c in DECK_CARDS if str(c) == str(Card(Suit.Hearts, CardValue.Three))][0]
+    card_5 = [c for c in DECK_CARDS if str(c) == str(Card(Suit.Spades, CardValue.Deuce))][0]
+    card_6 = [c for c in DECK_CARDS if str(c) == str(Card(Suit.Spades, CardValue.Five))][0]
+
+    last_available_game_mode_name = GameMode.Spades.name
+
+    player_space = PlayerSpace(
+        "You", 
+        0, 0, 0, 0,
+        id_="PlayerSpace1", 
+        player_info=PlayerInfo(
+            player_position=PlayerPosition.First,
+            available_game_mode_names=[last_available_game_mode_name]
+            ), 
+        mouse_from=True, mouse_to=False
+    )
+    player_space.cards = [card_1, card_2, card_3, card_4, card_5, card_6]
+
+    rules = Rules()
+    table_info = TableInformation
+    table_info.all_cards=DECK_CARDS
+    table_info.hand_cards=player_space.cards
+    table_info.game_space_cards=[]
+    ai = ClassicAI(table_info, rules)
+    assert ai.choose_game_mode(player_space).name == last_available_game_mode_name
 
 def test_ai_choose_trash_cards_1():
     """ Correct len of trash_cards choosen"""

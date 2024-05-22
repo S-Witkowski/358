@@ -58,8 +58,7 @@ class GuiInterface(object):
         for element in self.gui_list:
             if hasattr(element, "id_") and element.id_ == id_:
                 self.gui_list.remove(element)
-                return
-        raise ValueError(f"{id_} not found")
+                break
     
     def update(self):
         for element in self.gui_list:

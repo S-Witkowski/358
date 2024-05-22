@@ -49,6 +49,8 @@ class ClassicAI(AbstractAI):
             return GameMode.Hearts
         elif strongest_suit_name == Suit.Spades.name:
             return GameMode.Spades
+        else:
+            raise ValueError(f"No gameMode selected for {player.name} which should not happen.")
         
     def choose_trash_cards(self, player: PlayerSpace) -> list[CardSprite]:
         if self.table_info.game_mode_selected.name == GameMode.NoTricks.name:

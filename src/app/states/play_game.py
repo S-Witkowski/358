@@ -11,7 +11,7 @@ class GamePlay(State):
     def __init__(self, game_controller):
         super().__init__(game_controller)
         self.game_controller = game_controller
-        self.widht = self.game_controller.screen.get_width()
+        self.width = self.game_controller.screen.get_width()
         self.height = self.game_controller.screen.get_height()
 
         self.post_init_flag = False
@@ -31,7 +31,7 @@ class GamePlay(State):
     def _prepare_spaces(self):
         self.game_space = GameSpace(
             "Game", 
-            self.widht*0.4, self.height*0.45, self.widht*0.15, self.height*0.15, 
+            self.width*0.4, self.height*0.45, self.width*0.2, self.height*0.2, 
             id_="GameSpace")
         self.game_controller.space_interface.add(self.game_space)
 
@@ -54,7 +54,7 @@ class GamePlay(State):
         self.game_space.transfer_all(player_space_loot_box)
         self.game_controller.space_interface.adjust_all_space_card_position()
         self.game_controller.gui_interface.show_label(
-            rect=(self.widht*0.45, self.height*0.4, self.widht*0.2, self.height*0.2), 
+            rect=(self.width*0.45, self.height*0.4, self.width*0.2, self.height*0.2), 
             text=f"strongest_card {strongest_card} goes to {strongest_card_player.name}", 
             timeout=3,
             id_="TempLabel"
@@ -84,7 +84,7 @@ class GamePlay(State):
 
     def check_end_game(self):
         """Check if game should end"""
-        if self.game_controller.score_board.rounds_played == 18: # last round ended
+        if self.next_round and self.game_controller.score_board.check_game_end(): # last round ended
             print(f"check_end_game...")
             self.done = True
             self.end_game = True
@@ -94,13 +94,14 @@ class GamePlay(State):
 
     def check_next_round(self):
         """Check if next round should be started"""
+
         cards_total_in_player_spaces = sum([len(player_space.cards) for player_space in self.game_controller.score_board.players])
         if cards_total_in_player_spaces == 0: # next round preparation
             self.next_turn = False
             self.next_round = True
             if not self.game_controller.gui_interface.get_by_id("GoToNextRoundButton"):
                 self.game_controller.gui_interface.show_button(
-                    rect=(self.widht*0.4, self.height*0.35, self.widht*0.2, self.height*0.2), 
+                    rect=(self.width*0.4, self.height*0.35, self.width*0.2, self.height*0.2), 
                     callback=self.__update_ready_next_round,
                     text=f"Go to next round", 
                     id_="GoToNextRoundButton"
