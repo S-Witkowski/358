@@ -1,8 +1,9 @@
-from sprites import Card, CardSprite
+import functools
+
+from card.sprite import CardSprite
+from card.base import Card
 from models.enums import GameMode, Suit
 from models.card_models import CardsDict
-from typing import List
-import functools
 
 class Rules:
 
@@ -76,7 +77,7 @@ class Rules:
             cards_copy.remove(strongest_card)
             return cards_copy
     
-    def validate_card(self, card: CardSprite, first_on_table_suit: Suit|None, game_mode_selected: GameMode, player_cards: List[Card]=None) -> bool:
+    def validate_card(self, card: CardSprite, first_on_table_suit: Suit|None, game_mode_selected: GameMode, player_cards: list[Card]=None) -> bool:
         """Validates if card can be moved to gamespace"""
         if not player_cards:
             player_cards = card.space.cards
@@ -103,7 +104,7 @@ class Rules:
                 else:
                     raise ValueError(f"No rules for validation {card} with ft {first_on_table_suit}")
 
-    def get_allowed_cards(self, cards: List[Card], first_on_table_suit: Suit, game_mode_selected: GameMode, player_hand_cards: List[Card]=None) -> List[Card]:
+    def get_allowed_cards(self, cards: list[Card], first_on_table_suit: Suit, game_mode_selected: GameMode, player_hand_cards: list[Card]=None) -> list[Card]:
         """From card list gets the allowed cards. Has to be in line with first_on_table card"""
         if cards:
             cards_dict = CardsDict(cards).card_dict

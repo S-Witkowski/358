@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+import pygame as pg
 
 class State(ABC):
     def __init__(self, game_controller):
@@ -19,6 +19,11 @@ class State(ABC):
 
     def exit_state(self):
         self.quit = True
+
+    def render_and_wait(self):
+        """render for AI related purposes"""
+        self.game_controller.gui_interface.render()
+        pg.time.wait(1500)
 
     @abstractmethod
     def check_input(self, mouse_keys, mouse_pos, mouse_rel, event=None):

@@ -1,5 +1,5 @@
 from src.app.scores import ScoreBoard
-from src.app.space import PlayerSpace
+from src.app.space.spaces import PlayerSpace
 from src.app.models.scores_models import PlayerInfo
 from src.app.models.enums import PlayerPosition, GameMode
 
@@ -43,10 +43,10 @@ def test_update_player_game_mode_picked_1():
     score_board = ScoreBoard(players=PLAYERS)
     score_board.update_current_game_mode_picking_player_space()
     score_board.update_player_game_mode_picked(GameMode.NoTricks)
-    assert GameMode.NoTricks.name not in score_board.game_mode_picking_player_space.player_info.available_game_modes
+    assert GameMode.NoTricks.name not in score_board.game_mode_picking_player_space.player_info.available_game_mode_names
 
 
-def test_update_player_game_mode_picked_1():
+def test_update_player_game_mode_picked_2():
     score_board = ScoreBoard(players=PLAYERS)
 
     score_board.update_current_game_mode_picking_player_space()

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from space import PlayerSpace
-from sprites import CardSprite
+from space.spaces import PlayerSpace
+from card.sprite import CardSprite
 from models.enums import GameMode
 from rules import Rules
 
@@ -12,6 +12,7 @@ class TableInformation:
     game_space_cards: list[CardSprite]=[]
     game_mode_selected: GameMode=None
 
+    @classmethod
     def reset(cls):
         cls.trashed_cards = []
         cls.hand_cards = []

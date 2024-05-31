@@ -1,11 +1,11 @@
+import functools
+
 from AI.base import AbstractAI, TableInformation
 from models.enums import GameMode, Suit
 from models.card_models import CardsDict
-from sprites import CardSprite
-from space import PlayerSpace
+from space.spaces import PlayerSpace
+from card.sprite import CardSprite
 from rules import Rules
-import functools
-from typing import List
 
 class ClassicAI(AbstractAI):
     def __init__(self, table_info: TableInformation, rules: Rules) -> None:
@@ -98,7 +98,7 @@ class ClassicAI(AbstractAI):
                 return False
         return True
     
-    def get_strongest_card(self, cards: List[CardSprite]) -> CardSprite:
+    def get_strongest_card(self, cards: list[CardSprite]) -> CardSprite:
         """From card list gets the strongest card. Has to be in line with first_on_table card"""
         first_on_table_suit = self.get_first_card_on_table_suit()
         allowed_cards = self.rules.get_allowed_cards(cards, first_on_table_suit, self.table_info.game_mode_selected, cards)
@@ -135,7 +135,7 @@ class ClassicAI(AbstractAI):
             else:
                 raise ValueError("No strongest card found. That should not happen there.")
 
-    def get_weakest_card(self, cards: List[CardSprite]) -> CardSprite:
+    def get_weakest_card(self, cards: list[CardSprite]) -> CardSprite:
         """From card list gets the weakest card. Has to be in line with first_on_table card"""
         first_on_table_suit = self.get_first_card_on_table_suit()
         trump_suit = self.get_trump_suit()
@@ -217,15 +217,15 @@ class ClassicAI(AbstractAI):
         return self.get_weakest_card(self.table_info.hand_cards)
     
     def case_one_card_in_game_space(self) -> CardSprite:
-        first_on_table_suit = self.get_first_card_on_table_suit()
-        for card in self.table_info.hand_cards:
-            if self.rules.validate_card(card, first_on_table_suit, self.table_info.game_mode_selected):
-                table_card = self.table_info.game_space_cards[0]
-                better_card = self.rules.compare(card, table_card, table_card.suit, self.table_info.game_mode_selected)
-                if card == better_card:
-                    return card
-        weakest_card = self.get_weakest_card(self.table_info.hand_cards)
-        return weakest_card
+        strongest_card = self.get_strongest_card(self.table_info.hand_cards)
+        card_on_table = self.table_info.game_space_cards[0]
+        if strongest_card == self.rules.compare(
+            card_on_table, strongest_card, 
+            self.get_first_card_on_table_suit(), 
+            self.table_info.game_mode_selected
+            ):
+            return strongest_card
+        return self.get_weakest_winning_card_from_hand()
 
     def case_two_cards_in_game_space(self) -> CardSprite:
         return self.get_weakest_winning_card_from_hand()

@@ -1,8 +1,9 @@
 import pygame as pg
 from .state import State
-from space import GameSpace
+from space.spaces import GameSpace
 from settings import WIDTH, HEIGHT
 import functools 
+from itertools import cycle
 
 SPACE_HEIGHT = HEIGHT*0.15
 SPACE_WIDTH = WIDTH*0.1
@@ -19,6 +20,15 @@ class GamePlay(State):
         self.next_round = False
         self.ready_next_round = False
         self.end_game = False
+
+        self.stages = cycle([
+            self.check_game_space_full,
+            self.check_next_round,
+            self.check_end_game,
+            self.check_new_turn,
+            self.wait_for_bot_input,
+            self.wait_for_player_input,
+            ])
 
     def post_init(self):
         """ Called after the previous state is finished"""
@@ -51,8 +61,6 @@ class GamePlay(State):
         strongest_card = self.game_controller.rules.get_game_space_strongest_card(self.game_space.cards, self.game_space.first_card_on_table.suit, self.prev_state.game_mode_selected)
         strongest_card_player = strongest_card.space_history[-2]
         player_space_loot_box = strongest_card_player.loot_box_space
-        self.game_space.transfer_all(player_space_loot_box)
-        self.game_controller.space_interface.adjust_all_space_card_position()
         self.game_controller.gui_interface.show_label(
             rect=(self.width*0.45, self.height*0.4, self.width*0.2, self.height*0.2), 
             text=f"strongest_card {strongest_card} goes to {strongest_card_player.name}", 
@@ -60,6 +68,11 @@ class GamePlay(State):
             id_="TempLabel"
         )
         print(f"decide_strongest_card_player log: strongest_card -> {strongest_card}, strongest_card_player -> {strongest_card_player.name}, player_space_loot_box -> {player_space_loot_box.name}")
+
+        self.render_and_wait()
+        for card in self.game_space.cards:
+            self.game_controller.space_interface.move_to_space(card, player_space_loot_box)
+
         return strongest_card_player
         
     def check_game_space_full(self):
@@ -71,9 +84,8 @@ class GamePlay(State):
             5. Update table info
             6. Update label
         """
-        if self.game_space.full:
+        if self.game_space.full and not self.game_controller.space_interface.cards_moving:
             print(f"check_game_space_full...")
-            pg.time.wait(1000)
             strongest_card_player = self._decide_strongest_card_player()
             self.game_controller.score_board.update_current_score(strongest_card_player, self.game_controller.table_info.game_mode_selected)
             self.current_turn_order = self.game_controller.score_board.get_turn_order(strongest_card_player)
@@ -114,7 +126,7 @@ class GamePlay(State):
         
     def check_new_turn(self):
         """ Start turn for next player"""
-        if self.next_turn and not self.next_round:
+        if self.next_turn and not self.next_round and not self.game_controller.space_interface.cards_moving:
             print(f"check_new_turn...")
             self.game_controller.space_interface.adjust_all_space_card_position()
             self.current_player_space = self.current_turn_order.pop(0)
@@ -132,19 +144,21 @@ class GamePlay(State):
 
     def wait_for_bot_input(self):
         if not self.current_player_space.mouse_from and not self.next_turn and not self.next_round:
-            if not self.current_player_space.cards_moving:
+            if not self.game_controller.space_interface.cards_moving:
                 if self.game_space.cards:
                     bot_cards_in_game_space = [card for card in self.game_space.cards if card.space_history[-2] == self.current_player_space]
                     if not bot_cards_in_game_space:
                         choosed_best_card = self.choose_best_card()
-                        self.current_player_space.move_to_space(choosed_best_card, self.game_space)
+                        choosed_best_card.back_up = True
+                        self.game_controller.space_interface.move_to_space(choosed_best_card, self.game_space)
                         print(f"{self.current_player_space.name} card {choosed_best_card} moving into {self.game_space.name}...")
                     else:                  
                         print(f"bot card in {self.game_space.name}")
                         self.next_turn = True
                 else:
                     choosed_best_card = self.choose_best_card()
-                    self.current_player_space.move_to_space(choosed_best_card, self.game_space)
+                    choosed_best_card.back_up = True
+                    self.game_controller.space_interface.move_to_space(choosed_best_card, self.game_space)
                     print(f"{self.current_player_space.name} card {choosed_best_card} moving into {self.game_space.name}...")
             
     def update_table_info(self):
@@ -164,14 +178,8 @@ class GamePlay(State):
         self.post_init()
         self.game_controller.space_interface.update()
         self.game_controller.gui_interface.update()
-        self.check_game_space_full()
-        self.check_next_round()
-        self.check_end_game()
+        next(self.stages)()
         self.update_table_info()
-
-        self.check_new_turn()
-        self.wait_for_bot_input()
-        self.wait_for_player_input()
             
     def render(self, screen):
         self.game_controller.space_interface.render(screen)

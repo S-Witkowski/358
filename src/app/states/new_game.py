@@ -2,7 +2,7 @@
 from .state import State
 from models.scores_models import PlayerInfo
 from models.enums import PlayerPosition
-from space import PlayerSpace
+from space.spaces import PlayerSpace
 from scores import ScoreBoard
 
 from settings import CARD_SPACE_HEIGHT_PERC, MARIGIN_PERC, TEXT_SIZE_REL, BUTTON_COLOR
@@ -22,7 +22,7 @@ class GameNew(State):
                 self.widht*PLAYER_WIDTH_REL*2, self.height*(1-MARIGIN_PERC-CARD_SPACE_HEIGHT_PERC-CARD_SPACE_HEIGHT_PERC), self.widht*PLAYER_WIDTH_REL, self.height*CARD_SPACE_HEIGHT_PERC, 
                 id_="PlayerSpace1", 
                 player_info=PlayerInfo(player_position=PlayerPosition.First), 
-                mouse_from=False, mouse_to=False
+                mouse_from=True, mouse_to=False
                 )
             )
         self.game_controller.space_interface.add(

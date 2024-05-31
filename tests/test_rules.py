@@ -1,6 +1,6 @@
 from src.app.rules import Rules
-from src.app.space import PlayerSpace
-from src.app.sprites import Card
+from src.app.space.spaces import PlayerSpace
+from src.app.card.base import Card
 from src.app.models.scores_models import PlayerInfo
 from src.app.models.enums import PlayerPosition, CardValue, Suit, GameMode
 

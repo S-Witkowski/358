@@ -1,4 +1,4 @@
-from space import PlayerSpace
+from space.spaces import PlayerSpace
 from models.enums import PlayerPosition, GameMode
 
 class ScoreBoard:

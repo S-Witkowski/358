@@ -1,11 +1,11 @@
 
 import pygame as pg
+
 from models.enums import GameMode
 from gui.elements import Icon, AbstractGUIElement, Label
 from scores import ScoreBoard
-from space import PlayerSpace
+from space.spaces import PlayerSpace
 from utils import load_and_transform_image
-from settings import LABEL_COLOR, TEXT_SIZE_REL, BUTTON_COLOR
 
 
 class GameModeSelectionBox(AbstractGUIElement):
@@ -115,6 +115,7 @@ class ScoreBoardBox(AbstractGUIElement):
             (rect[0] + rect[2]/10, rect[1] + rect[3]/3 + rect[3]/6),
             (rect[0] + rect[2]/10, rect[1] + rect[3]/1.5 + rect[3]/6),
             ]
+        self.round_number_pos = (rect[0] + rect[2] - self.text_size, rect[1])
         self.icon_rendered = None
 
     def update_game_mode_icon(self):
@@ -154,12 +155,18 @@ class ScoreBoardBox(AbstractGUIElement):
         txt = f"{player.name}: {player.player_info.total_score}"
         text_surface = self.font.render(txt, True, self.color)
         self.screen.blit(text_surface, pos)
+    
+    def render_round_number(self):
+        txt = f"{self.score_board.rounds_played}"
+        text_surface = self.font.render(txt, True, self.color)
+        self.screen.blit(text_surface, self.round_number_pos)
 
     def render(self):
         self.screen.blit(self.image, (self.rect.topleft))
         self.render_player_score(self.score_board.first_player, self.player_name_position[0])
         self.render_player_score(self.score_board.second_player, self.player_name_position[1])
         self.render_player_score(self.score_board.third_player, self.player_name_position[2])
+        self.render_round_number()
         if self.icon_rendered:
             self.icon_rendered.render()
 

@@ -11,7 +11,7 @@ from AI.base import TableInformation, AbstractAI
 from AI.classic import ClassicAI
 from rules import Rules
 from gui.interface import GuiInterface
-from space import SpaceInterface
+from space.interface import SpaceInterface
 from utils import load_and_transform_image
 
 class Control():

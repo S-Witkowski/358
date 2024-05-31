@@ -1,6 +1,6 @@
 from .state import State
-from space import CardSpace
-from deck import Deck
+from space.base import CardSpace
+from space.spaces import Deck
 import pygame as pg
 from utils import load_and_transform_image
 from settings import CARD_SPACE_HEIGHT_PERC, MARIGIN_PERC
@@ -61,19 +61,17 @@ class GamePrepare(State):
         2. 4 cards dealt for picking box
         3. Game mode selectionbox showed
         """
-        if not self.first_stage:
-            self.post_init()
-            self.deal_first_cards()
-            self.game_mode_selection_box = self.game_controller.gui_interface.show_selection_box(
-                rect=(self.widht*0.375, self.height*0.3, self.widht*0.25, self.height*0.25), 
-                id_="GameModeSelectionBox",
-                available_game_mode_names=self.game_controller.score_board.game_mode_picking_player_space.player_info.available_game_mode_names
-            )
-            self.first_stage = True
-            print(f"First stage ended")
-        return self.first_stage 
+        self.post_init()
+        self.deal_first_cards()
+        self.game_mode_selection_box = self.game_controller.gui_interface.show_selection_box(
+            rect=(self.widht*0.375, self.height*0.3, self.widht*0.25, self.height*0.25), 
+            id_="GameModeSelectionBox",
+            available_game_mode_names=self.game_controller.score_board.game_mode_picking_player_space.player_info.available_game_mode_names
+        )
+        self.first_stage = True
+        print(f"First stage ended")
 
-    def update_second_stage(self): # player interaction needed to pass
+    def update_second_stage(self): # player/AI interaction needed to pass
         """
         Second stage of GamePrepare:
         1. Check if correct GameMode was choosen
@@ -82,45 +80,41 @@ class GamePrepare(State):
         4. Close selection box
 
         """
-        if self.first_stage:
+        if not self.game_mode_selected:
             # Player decides game mode
-            if not self.second_stage and not self.game_mode_selected:
-                if self.game_controller.score_board.game_mode_picking_player_space.mouse_from and self.game_mode_selection_box.icon_selected:
-                    # check if game mode is correct -> update_player_game_mode_picked should return True in that case
-                    if self.game_controller.score_board.update_player_game_mode_picked(self.game_mode_selection_box.icon_selected.game_mode):
-                        self.game_mode_selected = self.game_mode_selection_box.icon_selected.game_mode
-                    else:
-                        self.game_controller.gui_interface.show_label(
-                            rect=(self.game_mode_selection_box.box_x + self.widht*0.3/3, self.game_mode_selection_box.box_y - self.height*0.3/3 - 20), 
-                            text=f"{self.game_mode_selection_box.icon_selected.game_mode.name} can't be selected!", 
-                            timeout=3,
-                            id_="GameModeNotSelectedLabel"
-                        )
-                        self.game_mode_selection_box.icon_selected = None
-                # AI decides game mode -> update_player_game_mode_picked always returns True
-                elif not self.game_controller.score_board.game_mode_picking_player_space.mouse_from:
-                    pg.time.wait(1000)
-                    self.game_mode_selected = self.game_controller.AI.choose_game_mode(self.game_controller.score_board.game_mode_picking_player_space)
-                    self.game_mode_selection_box.simulate_selecting_icon(self.game_mode_selected)
-                    self.game_controller.score_board.update_player_game_mode_picked(self.game_mode_selected)
-
-                # if seleced game mode is correct, show label
-                if self.game_mode_selected:
+            if self.game_controller.score_board.game_mode_picking_player_space.mouse_from and self.game_mode_selection_box.icon_selected:
+                # check if game mode is correct -> update_player_game_mode_picked should return True in that case
+                if self.game_controller.score_board.update_player_game_mode_picked(self.game_mode_selection_box.icon_selected.game_mode):
+                    self.game_mode_selected = self.game_mode_selection_box.icon_selected.game_mode
+                else:
                     self.game_controller.gui_interface.show_label(
-                        rect=self.game_mode_selection_box.rect, 
-                        text=f"{self.game_mode_selected.name} selected!", 
+                        rect=(self.game_mode_selection_box.box_x + self.widht*0.3/3, self.game_mode_selection_box.box_y - self.height*0.3/3 - 20), 
+                        text=f"{self.game_mode_selection_box.icon_selected.game_mode.name} can't be selected!", 
                         timeout=3,
-                        id_="GameModeSelectedLabel"
+                        id_="GameModeNotSelectedLabel"
                     )
-                    pg.time.wait(1000)
-                    self.game_controller.table_info.game_mode_selected = self.game_mode_selected
-                    self.game_controller.score_board.change_starting_current_score(self.game_mode_selected)
-                    self.game_controller.gui_interface.hide_by_id("GameModeSelectionBox")
-                    self.second_stage = True
-                    print(f"Second stage ended")
+                    self.game_mode_selection_box.icon_selected = None
+            # AI decides game mode -> update_player_game_mode_picked always returns True
+            elif not self.game_controller.score_board.game_mode_picking_player_space.mouse_from:
+                self.game_mode_selected = self.game_controller.AI.choose_game_mode(self.game_controller.score_board.game_mode_picking_player_space)
+                self.game_mode_selection_box.simulate_selecting_icon(self.game_mode_selected)
+                self.game_controller.score_board.update_player_game_mode_picked(self.game_mode_selected)
+                # fast solution, not ideal
+                self.render_and_wait()
 
-        return self.second_stage
-    
+            # if seleced game mode is correct, show label
+            if self.game_mode_selected:
+                self.game_controller.gui_interface.show_label(
+                    rect=self.game_mode_selection_box.rect, 
+                    text=f"{self.game_mode_selected.name} selected!", 
+                    timeout=3,
+                    id_="GameModeSelectedLabel"
+                )
+                self.game_controller.table_info.game_mode_selected = self.game_mode_selected
+                self.game_controller.score_board.change_starting_current_score(self.game_mode_selected)
+                self.game_controller.gui_interface.hide_by_id("GameModeSelectionBox")
+                self.second_stage = True
+                print(f"Second stage ended")    
 
     def update_third_stage(self):
         """
@@ -129,72 +123,73 @@ class GamePrepare(State):
         2. Clean picking box
         3. Create space for trash
         """
-        if self.second_stage:
-            if not self.third_stage:
-                pick_space = self.game_controller.space_interface.get_by_id("PickSpace")
+        pick_space = self.game_controller.space_interface.get_by_id("PickSpace")
 
-                 # flips cards if active player picked game mode and set trash_mouse_to
-                if self.game_controller.score_board.game_mode_picking_player_space.mouse_from:
-                    pick_space.flip_cards()
-                    trash_mouse_to = True
-                else:
-                    trash_mouse_to = False
-
-                # transfer cards from pick_space to game_mode_picking_player_space
-                for card in pick_space.cards.copy():
-                    pick_space.transfer(card, self.game_controller.score_board.game_mode_picking_player_space)
-                pick_space.clean()
-
-                # add trash space and show hint label
-                self.game_controller.space_interface.add(CardSpace(
-                    "Trash", 
-                    self.widht*0.45, self.height*0.6, self.widht*0.2, self.height*CARD_SPACE_HEIGHT_PERC, 
-                    id_="TrashSpace", 
-                    image=load_and_transform_image("trash_space.png", space_width=self.widht*0.1, size_factor=1),
-                    mouse_from=False, mouse_to=trash_mouse_to
+        # transfer cards from pick_space to game_mode_picking_player_space
+        if not self.game_controller.space_interface.cards_moving:
+            pick_space.flip_cards() # TODO pick_space_visible
+            for card in pick_space.cards:
+                self.game_controller.space_interface.move_to_space(
+                    card, self.game_controller.score_board.game_mode_picking_player_space
                     )
-                )
-                self.game_controller.gui_interface.show_label(
-                    rect=(self.widht*0.35, self.height*0.5, self.widht*0.2, self.height*0.2), 
-                    text=f"Put 4 redundant cards in space below to start round!", 
-                    timeout=0,
-                    id_="TrashHintLabel"
-                )
-                self.game_controller.space_interface.adjust_all_space_card_position()
-                self.third_stage = True
-                print(f"Third stage ended")
+            print("moving pick_space cards")
+        
+        if not pick_space.cards:
+            pick_space.clean()
+        else:
+            return
 
-        return self.third_stage
+        # add trash space and show hint label
+        if self.game_controller.score_board.game_mode_picking_player_space.mouse_from:
+            trash_mouse_to = True
+        else:
+            trash_mouse_to = False
+
+        self.game_controller.space_interface.add(CardSpace(
+            "Trash", 
+            self.widht*0.45, self.height*0.6, self.widht*0.2, self.height*CARD_SPACE_HEIGHT_PERC, 
+            id_="TrashSpace", 
+            image=load_and_transform_image("trash_space.png", space_width=self.widht*0.1, size_factor=1),
+            mouse_from=False, mouse_to=trash_mouse_to
+            )
+        )
+        self.game_controller.gui_interface.show_label(
+            rect=(self.widht*0.35, self.height*0.5, self.widht*0.2, self.height*0.2), 
+            text=f"Put 4 redundant cards in space below to start round!", 
+            timeout=0,
+            id_="TrashHintLabel"
+        )
+        self.game_controller.space_interface.adjust_all_space_card_position()
+        self.third_stage = True
+        print(f"Third stage ended")
 
     def update_fourth_stage(self): # player interaction needed to pass
         """
         Fourth stage of GamePrepare:
         1. Transfer 4 cards from player to trash
         """
-        if self.third_stage:
-            if not self.fourth_stage:
-                trash_space = self.game_controller.space_interface.get_by_id("TrashSpace")
-                # if AI decides
-                if not self.game_controller.score_board.game_mode_picking_player_space.mouse_from:
-                    trash_cards = self.game_controller.AI.choose_trash_cards(self.game_controller.score_board.game_mode_picking_player_space)
-                    for card in trash_cards:
-                        self.game_controller.score_board.game_mode_picking_player_space.transfer(card, trash_space)
+        trash_space = self.game_controller.space_interface.get_by_id("TrashSpace")
+        # if AI decides
+        if not self.game_controller.score_board.game_mode_picking_player_space.mouse_from:
+            trash_cards = self.game_controller.AI.choose_trash_cards(self.game_controller.score_board.game_mode_picking_player_space)
+            if not self.game_controller.space_interface.cards_moving:
+                for card in trash_cards:
+                    self.game_controller.space_interface.move_to_space(card, trash_space)
 
-                if len(trash_space.cards) == 4:
-                    trash_space.lock()
-                    trash_space.flip_cards()
-                    self.game_controller.table_info.trashed_cards = trash_space.cards
+        if len(trash_space.cards) == 4:
+            trash_space.lock()
+            trash_space.flip_cards()
+            self.game_controller.table_info.trashed_cards = trash_space.cards
 
-                    self.game_controller.gui_interface.show_label(
-                        rect=(self.widht*0.4, self.height*0.35, self.widht*0.2, self.height*0.2), 
-                        text=f"Cards in trash! Click Start game to start game!", 
-                        timeout=3,
-                        id_="CardsInTrashLabel"
-                    )
-                    self.game_controller.space_interface.adjust_all_space_card_position()
-                    self.fourth_stage = True
-                    print(f"Fourth stage ended")
-        return self.fourth_stage
+            self.game_controller.gui_interface.show_label(
+                rect=(self.widht*0.4, self.height*0.35, self.widht*0.2, self.height*0.2), 
+                text=f"Cards in trash! Click Start game to start game!", 
+                timeout=3,
+                id_="CardsInTrashLabel"
+            )
+            self.game_controller.space_interface.adjust_all_space_card_position()
+            self.fourth_stage = True
+            print(f"Fourth stage ended")
     
     def update_fifth_stage(self): # player interaction needed to pass
         """
@@ -211,17 +206,35 @@ class GamePrepare(State):
             self.game_controller.space_interface.adjust_all_space_card_position()
             self.done = True
 
+        self.game_controller.gui_interface.show_button(
+            rect=(self.widht*0.4, self.height*0.35, self.widht*0.2, self.height*0.2), 
+            callback=deal_remaining_cards,
+            text=f"Start round", 
+            id_="RoundStartButton"
+            )
+        self.fifth_stage = True
+        print(f"Fifth stage ended")
+    
+    def update_game_stages(self):
+        if not self.first_stage:
+            self.update_first_stage()
+            return
+        if self.first_stage:
+            if not self.second_stage:
+                self.update_second_stage()
+                return
+        if self.second_stage:
+            if not self.third_stage:
+                self.update_third_stage()
+                return
+        if self.third_stage:
+            if not self.fourth_stage:
+                self.update_fourth_stage()
+                return
         if self.fourth_stage:
             if not self.fifth_stage:
-                self.game_controller.gui_interface.show_button(
-                    rect=(self.widht*0.4, self.height*0.35, self.widht*0.2, self.height*0.2), 
-                    callback=deal_remaining_cards,
-                    text=f"Start round", 
-                    id_="RoundStartButton"
-                    )
-                self.fifth_stage = True
-                print(f"Fifth stage ended")
-        return self.fifth_stage
+                self.update_fifth_stage()
+                return
 
     def update(self):
         for space in self.game_controller.space_interface.space_list:
@@ -230,12 +243,8 @@ class GamePrepare(State):
         self.game_controller.gui_interface.update()
         self.game_controller.space_interface.update()
 
-        self.update_first_stage()
-        self.update_second_stage()
-        self.update_third_stage()
-        self.update_fourth_stage()
-        self.update_fifth_stage()
-
+        self.update_game_stages()
+        
     def render(self, screen):
         self.game_controller.space_interface.render(screen)
         self.game_controller.gui_interface.render()

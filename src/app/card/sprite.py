@@ -1,29 +1,9 @@
-
 import pygame as pg
 from models.enums import Suit, CardValue, GameMode
-from space import CardSpace
+from card.base import Card
+from space.base import CardSpace
 from utils import load_and_transform_image
 
-class Card:
-    def __init__(self, suit: Suit, value: CardValue):
-        self.suit = suit
-        self.value = value
-
-    def __str__(self):
-        return f"{self.value.name} of {self.suit.name}"
-    
-    def __repr__(self):
-        return f"{self.value.name} of {self.suit.name}"
-    
-    def __lt__(self, other):
-        return float(self) < float(other)
-    
-    def __gt__(self, other):
-        return float(self) > float(other)
-    
-    def __float__(self):
-        return self.value.value + self.suit.value/100
-    
 class CardSprite(pg.sprite.Sprite, Card): 
     card_size_factor = 0.12
     game_mode: GameMode = None # type: ignore
@@ -37,10 +17,12 @@ class CardSprite(pg.sprite.Sprite, Card):
         self.back_image = load_and_transform_image("back-side.png", space_width=space_width, size_factor=self.card_size_factor)
         self.rect = self.back_image.get_rect(center=(x, y))
         self.image = self.get_render_tuple()[0]
+        self.space_history = [self.space]
+
         self.clicked = False
         self.clicked_pos = None
-        self.space_history = [self.space]
-        self.tuple_repr = (self.suit.value, self.value.value)
+        self.moving = False
+        self.moving_pos = None
 
     def __repr__(self):
         return f"{self.value.name} of {self.suit.name}"
@@ -84,7 +66,3 @@ class CardSprite(pg.sprite.Sprite, Card):
                 return True
         else:
             return False
-    
-
-
-    

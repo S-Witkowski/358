@@ -1,10 +1,9 @@
-from sprites import Card, CardSprite
-from typing import List
+from card.sprite import CardSprite
 from models.enums import Suit
 
-class CardList:
+class Cardlist:
     """Process information about card list with the same suit"""
-    def __init__(self, cards: List[CardSprite]) -> None:
+    def __init__(self, cards: list[CardSprite]) -> None:
         self.cards = cards
 
     def number_of_cards(self) -> int:
@@ -31,11 +30,11 @@ class CardList:
             
 class CardsDict:
     """Process information about card list with different suits, usually player hand"""
-    def __init__(self, cards: List[CardSprite]):
+    def __init__(self, cards: list[CardSprite]):
         """
-        suit.name: CardList
+        suit.name: Cardlist
         example:
-        "Clubs": CardList
+        "Clubs": Cardlist
         """
         self.cards = cards
         self.card_dict = {
@@ -49,5 +48,5 @@ class CardsDict:
         for card in self.cards:
             self.card_dict[card.suit.name].append(card)
         for suit_name, cards in self.card_dict.items():
-            self.card_dict[suit_name] = CardList(cards) # type: ignore
+            self.card_dict[suit_name] = Cardlist(cards) # type: ignore
 
