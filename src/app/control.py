@@ -20,11 +20,13 @@ class Control():
         pg.display.set_caption("358")
         self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
         self.screen_rect = self.screen.get_rect()
-        self.background_image = load_and_transform_image("background.jpg", space_width=self.screen.get_width(), size_factor=1)
+        self.background_image = load_and_transform_image(
+            "background.jpg", space_width=self.screen.get_width(), size_factor=1
+            )
         self.clock = pg.time.Clock()
         self.fps = FPS
-        self.gui_interface = GuiInterface(self.screen)
-        self.space_interface = SpaceInterface()
+        self.gui_interface: GuiInterface = GuiInterface(self.screen)
+        self.space_interface: SpaceInterface = SpaceInterface(self.clock)
         self.table_info: TableInformation = TableInformation()
         self.rules: Rules = Rules()
         self.AI: AbstractAI = ClassicAI(self.table_info, self.rules)
@@ -78,7 +80,7 @@ class Control():
 
     def run(self):
         while not self.quit and not self.state_stack[-1].quit:
+            self.clock.tick(self.fps)
             self.event_loop()
             self.update()
             self.render()
-            self.clock.tick(self.fps)

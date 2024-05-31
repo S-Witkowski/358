@@ -12,13 +12,16 @@ class CardSpace:
     text_size_rel = 0.05
     alpha = 128
 
-    def __init__(self, name: str, x: int, y: int, width: float, height: float, id_: str, image=None, mouse_from=False, mouse_to=False):
+    def __init__(self, 
+                 name: str, x: int, y: int, width: float, height: float, 
+                 id_: str, image=None, mouse_from=False, mouse_to=False, card_visibility=False):
         self.name = name
         self.rect = pg.Rect(x, y, width, height)
         self.id_ = id_
         self.image = image
         self.mouse_from = mouse_from
         self.mouse_to = mouse_to
+        self.card_visibility = card_visibility
 
         self.cards: list[Card] = []
         self.clicked_card: Card = None
@@ -59,6 +62,10 @@ class CardSpace:
         self._remove(card)
         new_space._add(card)
         card.add_new_space(new_space)
+        if new_space.card_visibility:
+            card.back_up = False
+        else:
+            card.back_up = True
 
     def flip_cards(self):
         for card in self.cards: 
@@ -71,8 +78,6 @@ class CardSpace:
                 if not card.moving:
                     card.move_topleft((x_offset, self.rect[1]))
                     x_offset += self.card_offset
-                if self.mouse_from:
-                    card.back_up = False
 
     def update(self):
         pass

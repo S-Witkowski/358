@@ -41,7 +41,7 @@ class GamePlay(State):
     def _prepare_spaces(self):
         self.game_space = GameSpace(
             "Game", 
-            self.width*0.4, self.height*0.45, self.width*0.2, self.height*0.2, 
+            self.width*0.4, self.height*0.4, self.width*0.2, self.height*0.2, 
             id_="GameSpace")
         self.game_controller.space_interface.add(self.game_space)
 

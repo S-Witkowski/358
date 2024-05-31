@@ -4,17 +4,22 @@ import math
 
 from space.base import CardSpace
 from space.spaces import PlayerSpace
+from card.sprite import CardSprite
+from settings import FPS
 
 class SpaceInterface:
-    """Supports all space objects and renders them"""
-    moving_card_speed = 10
-    def __init__(self):
+    """Supports all space objects and renders them.
+    Also contains card movement logic
+    """
+    base_speed = 2
+    def __init__(self, clock):
+        self.clock = clock
+        self.moving_card_speed = self.base_speed
         self.space_list: list[CardSpace] = []
-        self.hand_cards = []
-        self.card_moved_inside_space = None
-        self.card_moved_outside_space = None
-        self.cards_moving = {}
-        self.cards_stop_moving = []
+        self.hand_cards: list[CardSprite] = []
+        self.input_card_moved: dict[CardSprite, CardSpace | None] = {} # card moved by player
+        self.cards_moving: dict[CardSprite, CardSpace] = {} # other type of cards movement
+        self.cards_stop_moving: list[CardSprite] = []
 
     def load_hand_cards(self):
         for space in self.space_list:
@@ -61,7 +66,6 @@ class SpaceInterface:
         if not card in self.cards_moving.keys():
             self.cards_moving[card] = new_space
             card.moving = True
-            print(f"move_to_space_output: {card} to {self.cards_moving}")
     
     def add_card_to_stop_moving(self, card):
         self.cards_stop_moving.append(card)
@@ -78,7 +82,6 @@ class SpaceInterface:
             for card in self.cards_stop_moving:
                 if card in self.cards_moving.keys():
                     del self.cards_moving[card]
-                    print(f"{card} stopped moving")
             self.cards_stop_moving = []
     
     def update_moving_cards_handle(self):
@@ -88,7 +91,7 @@ class SpaceInterface:
                     # check if card can be moved
                     if new_space.locked:
                         self.add_card_to_stop_moving(card)
-                        print(f"Card {card} cannot be moved to {new_space} because it is locked")
+                        card.space.adjust_card_position_in_space()
                         continue
 
                     # get destination
@@ -101,15 +104,12 @@ class SpaceInterface:
                     dx = dest[0] - current_pos[0]
                     dy = dest[1] - current_pos[1]
                     angle = math.atan2(dy, dx)
-                    print(f"card: {card},current_pos: {current_pos}, dest: {dest}, angle: {angle}")
 
                     # if card is close enough to the destination, then stop moving
                     if card.space.mouse_from or (abs(dx) < self.moving_card_speed and abs(dy) < self.moving_card_speed):
-                        print(f"dest pos reached for {card}. Transfering from {card.space} to {new_space}...")
                         card.space.transfer(card, new_space)
                         self.add_card_to_stop_moving(card)
                         new_space.adjust_card_position_in_space()
-                        print(f"moved {card} to {new_space}")
                         continue
 
                     # calculate new position
@@ -119,6 +119,7 @@ class SpaceInterface:
 
     def update(self):
         """ Handles all moving cards"""
+        self.moving_card_speed = self.base_speed * self.clock.tick(FPS)
         for space in self.space_list:
             space.update()
         self.update_moving_cards_handle()
@@ -131,30 +132,38 @@ class SpaceInterface:
     def check_input(self, mouse_keys, mouse_pos, mouse_rel, event, rule_validation_callback=None):
         for card in self.hand_cards:
             card.check_input(mouse_keys, mouse_pos, mouse_rel, event)
-        # implement movement for one clicked card
+        # implement movement for clicked card
         clicked_card = self.get_clicked_card()
         if clicked_card:
             if clicked_card.space.mouse_from and event.type == pg.MOUSEMOTION:
                 clicked_card.move_topleft(mouse_pos)
-                self.card_moved_outside_space = clicked_card
 
+            # check if card is inside space: clicked_card -> self.input_card_moved
             for space in self.space_list:
                 # card collide with space - potential move needs to be validated in next function call
-                if clicked_card.check_rect_collision_with_space(space) and space.mouse_to:
-                    self.card_moved_inside_space = clicked_card
-                    self.card_moved_outside_space = None
+                if clicked_card.check_rect_collision_with_space(space):
+                    self.input_card_moved[clicked_card] = space
+                    break
+            if not self.input_card_moved or self.input_card_moved[clicked_card] == None:
+                self.input_card_moved[clicked_card] = None
 
-        for space in self.space_list:
-            if self.card_moved_inside_space:
-                if space.mouse_to and event.type == pg.MOUSEBUTTONUP and space.rect.collidepoint(mouse_pos):
+        # check if card from input_card_moved is dropped
+        if self.input_card_moved:
+            for k, v in self.input_card_moved.items():
+                input_card_moved = k
+                input_card_moved_space = v
+            if event.type == pg.MOUSEBUTTONUP and event.button == 1:            
+                if input_card_moved_space and input_card_moved_space.mouse_to:
                     if rule_validation_callback:
-                        if rule_validation_callback(self.card_moved_inside_space):
-                            self.move_to_space(self.card_moved_inside_space, space)
+                        if rule_validation_callback(input_card_moved):
+                            self.move_to_space(input_card_moved, input_card_moved_space)
+                        else:
+                            self.adjust_all_space_card_position()
                     else:
-                        self.move_to_space(self.card_moved_inside_space, space)
-                    self.card_moved_inside_space = None
-                    
-        # if card outside of any valid space, go back to prev space
-        if self.card_moved_outside_space and event.type == pg.MOUSEBUTTONUP:
-            self.adjust_all_space_card_position()
-            self.card_moved_outside_space = None
+                        self.move_to_space(input_card_moved, input_card_moved_space)
+
+                # if card outside of any valid space, go back to prev space
+                else:
+                    self.adjust_all_space_card_position()
+
+                self.input_card_moved = {}

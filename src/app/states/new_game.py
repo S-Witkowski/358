@@ -22,7 +22,7 @@ class GameNew(State):
                 self.widht*PLAYER_WIDTH_REL*2, self.height*(1-MARIGIN_PERC-CARD_SPACE_HEIGHT_PERC-CARD_SPACE_HEIGHT_PERC), self.widht*PLAYER_WIDTH_REL, self.height*CARD_SPACE_HEIGHT_PERC, 
                 id_="PlayerSpace1", 
                 player_info=PlayerInfo(player_position=PlayerPosition.First), 
-                mouse_from=True, mouse_to=False
+                mouse_from=True, mouse_to=False, card_visibility=True
                 )
             )
         self.game_controller.space_interface.add(

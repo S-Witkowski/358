@@ -7,7 +7,7 @@ from card.sprite import CardSprite
 from models.scores_models import PlayerInfo
 from models.enums import Suit, CardValue, PlayerPosition
 
-from settings import MARIGIN_PERC
+from settings import MARIGIN_PERC, LOOT_SPACE_VISIBILITY
 from utils import sort_cards, load_and_transform_image
 
 
@@ -41,14 +41,19 @@ class Deck(CardSpace):
                 self.transfer(self.cards[0], space)
 
 class PlayerSpace(CardSpace):
-    def __init__(self, name: str, x: int, y: int, width: float, height: float, id_: str, player_info: PlayerInfo, mouse_from=False, mouse_to=False):
-        super().__init__(name, x, y, width, height, id_, mouse_to=mouse_to, mouse_from=mouse_from)
+    def __init__(self, name: str, x: int, y: int, width: float, height: float, id_: str, player_info: PlayerInfo, mouse_from=False, mouse_to=False, card_visibility=False):
+        super().__init__(name, x, y, width, height, id_, mouse_to=mouse_to, mouse_from=mouse_from, card_visibility=card_visibility)
         self.loot_box_space = None
         self.player_info = player_info
         # self.image = load_and_transform_image("game_space.jpg", space_width=width, size_factor=1)
 
     def add_loot_box_space(self):
-        self.loot_box_space = CardSpace(f"{self.name}Loot", self.rect[0], self.rect[1] + self.rect[3]*(1+MARIGIN_PERC), self.rect[2], self.rect[3], id_=f"{self.id_}LootSpace")
+        self.loot_box_space = CardSpace(
+            f"{self.name}Loot", 
+            self.rect[0], self.rect[1] + self.rect[3]*(1+MARIGIN_PERC), self.rect[2], self.rect[3], 
+            id_=f"{self.id_}LootSpace",
+            card_visibility=LOOT_SPACE_VISIBILITY
+            )
 
     def clean(self):
         super().clean()
@@ -66,7 +71,7 @@ class PlayerSpace(CardSpace):
 
 class GameSpace(CardSpace):
     def __init__(self, name: str, x: int, y: int, width: float, height: float, id_: str):
-        super().__init__(name, x, y, width, height, id_, mouse_to=True, mouse_from=False)
+        super().__init__(name, x, y, width, height, id_, mouse_to=True, mouse_from=False, card_visibility=True)
         self.full = False
         self.first_card_on_table = None
         self.image = load_and_transform_image("game_space.jpg", space_width=width, size_factor=1)
@@ -93,7 +98,6 @@ class GameSpace(CardSpace):
                     card.move_topleft((self.rect[0] + 0.45*self.rect[2] - card.rect[2]/2, self.rect[1] + self.rect[3]*0.4))
                 elif card.space_history[-2].player_info.player_position == PlayerPosition.Third:
                     card.move_topleft((self.rect[0] + 0.55*self.rect[2] - card.rect[2]/2, self.rect[1] + self.rect[3]*0.3))
-                card.back_up = False
 
     def clean(self):
         """If there are three cards on the table, clean game_space and set every player space to transfer_done=False status """

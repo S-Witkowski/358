@@ -3,7 +3,7 @@ from space.base import CardSpace
 from space.spaces import Deck
 import pygame as pg
 from utils import load_and_transform_image
-from settings import CARD_SPACE_HEIGHT_PERC, MARIGIN_PERC
+from settings import CARD_SPACE_HEIGHT_PERC, MARIGIN_PERC, PICK_SPACE_VISIBILITY, TRASH_SPACE_VISIBILITY
 
 
 class GamePrepare(State):
@@ -124,15 +124,14 @@ class GamePrepare(State):
         3. Create space for trash
         """
         pick_space = self.game_controller.space_interface.get_by_id("PickSpace")
-
         # transfer cards from pick_space to game_mode_picking_player_space
         if not self.game_controller.space_interface.cards_moving:
-            pick_space.flip_cards() # TODO pick_space_visible
+            if PICK_SPACE_VISIBILITY or not self.game_controller.score_board.game_mode_picking_player_space.mouse_from:
+                pick_space.flip_cards()
             for card in pick_space.cards:
                 self.game_controller.space_interface.move_to_space(
                     card, self.game_controller.score_board.game_mode_picking_player_space
                     )
-            print("moving pick_space cards")
         
         if not pick_space.cards:
             pick_space.clean()
@@ -147,14 +146,14 @@ class GamePrepare(State):
 
         self.game_controller.space_interface.add(CardSpace(
             "Trash", 
-            self.widht*0.45, self.height*0.6, self.widht*0.2, self.height*CARD_SPACE_HEIGHT_PERC, 
+            self.widht*0.45, self.height*0.5, self.widht*0.2, self.height*CARD_SPACE_HEIGHT_PERC, 
             id_="TrashSpace", 
             image=load_and_transform_image("trash_space.png", space_width=self.widht*0.1, size_factor=1),
-            mouse_from=False, mouse_to=trash_mouse_to
+            mouse_from=False, mouse_to=trash_mouse_to, card_visibility=TRASH_SPACE_VISIBILITY
             )
         )
         self.game_controller.gui_interface.show_label(
-            rect=(self.widht*0.35, self.height*0.5, self.widht*0.2, self.height*0.2), 
+            rect=(self.widht*0.35, self.height*0.4, self.widht*0.2, self.height*0.2), 
             text=f"Put 4 redundant cards in space below to start round!", 
             timeout=0,
             id_="TrashHintLabel"
@@ -178,7 +177,6 @@ class GamePrepare(State):
 
         if len(trash_space.cards) == 4:
             trash_space.lock()
-            trash_space.flip_cards()
             self.game_controller.table_info.trashed_cards = trash_space.cards
 
             self.game_controller.gui_interface.show_label(
