@@ -441,3 +441,45 @@ def test_ai_choose_best_card_5():
     with patch('src.app.AI.classic.ClassicAI.get_first_card_on_table_suit', return_value=game_space_cards[0].suit):
         ai = ClassicAI(table_info, rules)
         assert ai.choose_best_card() == card_4
+
+def test_ai_choose_best_card_6():
+    card_1 = [c for c in DECK_CARDS if str(c) == str(Card(Suit.Clubs, CardValue.Ten))][0] 
+    card_2 = [c for c in DECK_CARDS if str(c) == str(Card(Suit.Clubs, CardValue.Nine))][0] 
+    card_3 = [c for c in DECK_CARDS if str(c) == str(Card(Suit.Hearts, CardValue.Ten))][0] 
+    card_4 = [c for c in DECK_CARDS if str(c) == str(Card(Suit.Diamonds, CardValue.Ten))][0] 
+
+    game_space_cards = [c for c in DECK_CARDS if str(c) == str(Card(Suit.Spades, CardValue.Jack))]
+    used_cards = []
+
+    rules = Rules()
+    table_info = TableInformation
+    table_info.all_cards = DECK_CARDS
+    table_info.hand_cards = [card_1, card_2, card_3, card_4]
+    table_info.game_space_cards = game_space_cards
+    table_info.used_cards = used_cards
+    table_info.game_mode_selected = GameMode.Hearts
+    
+    with patch('src.app.AI.classic.ClassicAI.get_first_card_on_table_suit', return_value=game_space_cards[0].suit):
+        ai = ClassicAI(table_info, rules)
+        assert ai.choose_best_card() == card_3
+
+def test_ai_choose_best_card_7():
+    card_1 = [c for c in DECK_CARDS if str(c) == str(Card(Suit.Clubs, CardValue.Deuce))][0] 
+    card_2 = [c for c in DECK_CARDS if str(c) == str(Card(Suit.Clubs, CardValue.Ace))][0] 
+    card_3 = [c for c in DECK_CARDS if str(c) == str(Card(Suit.Hearts, CardValue.Ten))][0] 
+    card_4 = [c for c in DECK_CARDS if str(c) == str(Card(Suit.Diamonds, CardValue.Ten))][0] 
+
+    game_space_cards = [c for c in DECK_CARDS if str(c) == str(Card(Suit.Spades, CardValue.Jack))]
+    used_cards = []
+
+    rules = Rules()
+    table_info = TableInformation
+    table_info.all_cards = DECK_CARDS
+    table_info.hand_cards = [card_1, card_2, card_3, card_4]
+    table_info.game_space_cards = game_space_cards
+    table_info.used_cards = used_cards
+    table_info.game_mode_selected = GameMode.Clubs
+    
+    with patch('src.app.AI.classic.ClassicAI.get_first_card_on_table_suit', return_value=game_space_cards[0].suit):
+        ai = ClassicAI(table_info, rules)
+        assert ai.choose_best_card() == card_1

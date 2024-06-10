@@ -7,6 +7,8 @@ from space.spaces import PlayerSpace
 from card.sprite import CardSprite
 from rules import Rules
 
+from logger import logger
+
 class ClassicAI(AbstractAI):
     def __init__(self, table_info: TableInformation, rules: Rules) -> None:
         super().__init__(table_info, rules)
@@ -218,13 +220,14 @@ class ClassicAI(AbstractAI):
     
     def case_one_card_in_game_space(self) -> CardSprite:
         strongest_card = self.get_strongest_card(self.table_info.hand_cards)
-        card_on_table = self.table_info.game_space_cards[0]
-        if strongest_card == self.rules.compare(
-            card_on_table, strongest_card, 
-            self.get_first_card_on_table_suit(), 
-            self.table_info.game_mode_selected
-            ):
-            return strongest_card
+        if strongest_card.suit.name != self.get_trump_suit().name:
+            card_on_table = self.table_info.game_space_cards[0]
+            if strongest_card == self.rules.compare(
+                card_on_table, strongest_card, 
+                self.get_first_card_on_table_suit(), 
+                self.table_info.game_mode_selected
+                ):
+                return strongest_card
         return self.get_weakest_winning_card_from_hand()
 
     def case_two_cards_in_game_space(self) -> CardSprite:
@@ -279,9 +282,23 @@ class ClassicAI(AbstractAI):
     
     def choose_best_card(self) -> CardSprite:
         if self.table_info.game_mode_selected.name in GameMode.get_trumps() or self.table_info.game_mode_selected.name == GameMode.NoTrump.name:
-            return self.choose_best_card_trump_game()
+            best_card = self.choose_best_card_trump_game()
         else:
-            return self.choose_best_card_no_tricks_game()
+            best_card = self.choose_best_card_no_tricks_game()
+        first_on_table_suit = self.get_first_card_on_table_suit()
+        trump_suit = self.get_trump_suit()
+        if trump_suit and first_on_table_suit and best_card.suit.name not in [trump_suit.name, first_on_table_suit.name]:
+            trump_cards_in_hand = [c for c in self.table_info.hand_cards if c.suit == trump_suit]
+            if trump_cards_in_hand:
+                logger.critical(f"Trump card in hand should be thrown!: \n \
+                                best_card_choosed: {best_card} \n \
+                                trump_cards_in_hand: {trump_cards_in_hand}, \n \
+                                trump_suit: {trump_suit}, \n \
+                                first_on_table_suit: {first_on_table_suit}, \n \
+                                game_space_cards: {self.table_info.game_space_cards} \n \
+                                hand_cards: {self.table_info.hand_cards} \
+                                ")
+        return best_card
 
             
 

@@ -35,7 +35,7 @@ class AbstractAI(ABC):
         self.rules = rules
 
     @abstractmethod
-    def choose_best_card(self):
+    def choose_best_card(self) -> CardSprite:
         pass
 
     @abstractmethod

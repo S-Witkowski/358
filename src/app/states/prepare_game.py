@@ -1,10 +1,9 @@
 from .state import State
 from space.base import CardSpace
 from space.spaces import Deck
-import pygame as pg
 from utils import load_and_transform_image
 from settings import CARD_SPACE_HEIGHT_PERC, MARIGIN_PERC, PICK_SPACE_VISIBILITY, TRASH_SPACE_VISIBILITY
-
+from logger import logger
 
 class GamePrepare(State):
     """ State where game prepare is happening:
@@ -69,7 +68,7 @@ class GamePrepare(State):
             available_game_mode_names=self.game_controller.score_board.game_mode_picking_player_space.player_info.available_game_mode_names
         )
         self.first_stage = True
-        print(f"First stage ended")
+        logger.info(f"First stage ended")
 
     def update_second_stage(self): # player/AI interaction needed to pass
         """
@@ -114,7 +113,7 @@ class GamePrepare(State):
                 self.game_controller.score_board.change_starting_current_score(self.game_mode_selected)
                 self.game_controller.gui_interface.hide_by_id("GameModeSelectionBox")
                 self.second_stage = True
-                print(f"Second stage ended")    
+                logger.info(f"Second stage ended")    
 
     def update_third_stage(self):
         """
@@ -160,7 +159,7 @@ class GamePrepare(State):
         )
         self.game_controller.space_interface.adjust_all_space_card_position()
         self.third_stage = True
-        print(f"Third stage ended")
+        logger.info(f"Third stage ended")
 
     def update_fourth_stage(self): # player interaction needed to pass
         """
@@ -187,7 +186,7 @@ class GamePrepare(State):
             )
             self.game_controller.space_interface.adjust_all_space_card_position()
             self.fourth_stage = True
-            print(f"Fourth stage ended")
+            logger.info(f"Fourth stage ended")
     
     def update_fifth_stage(self): # player interaction needed to pass
         """
@@ -211,7 +210,7 @@ class GamePrepare(State):
             id_="RoundStartButton"
             )
         self.fifth_stage = True
-        print(f"Fifth stage ended")
+        logger.info(f"Fifth stage ended")
     
     def update_game_stages(self):
         if not self.first_stage:

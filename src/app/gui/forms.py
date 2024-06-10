@@ -157,7 +157,7 @@ class ScoreBoardBox(AbstractGUIElement):
         self.screen.blit(text_surface, pos)
     
     def render_round_number(self):
-        txt = f"{self.score_board.rounds_played}"
+        txt = f"{self.score_board.rounds_played + 1}"
         text_surface = self.font.render(txt, True, self.color)
         self.screen.blit(text_surface, self.round_number_pos)
 

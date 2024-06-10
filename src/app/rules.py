@@ -120,4 +120,3 @@ class Rules:
                         allowed_cards.extend(inf.cards)
             allowed_cards = list(set(allowed_cards))
             return allowed_cards
-
